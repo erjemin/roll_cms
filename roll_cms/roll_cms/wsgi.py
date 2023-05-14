@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 """
-WSGI config for roll_cms project.
+Конфигурация WSGI для проекта roll_cms.
 
-It exposes the WSGI callable as a module-level variable named ``application``.
+Он предоставляет вызываемый WSGI как переменную уровня модуля с именем ``application``.
 
-For more information on this file, see
+Дополнительные сведения об этом файле см. документацию:
 https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
 """
 

@@ -37,11 +37,16 @@ class TbTemplate(models.Model):
         # https://github.com/codemirror/codemirror5
         # https://codemirror.net/5/doc/manual.html
     )
-    szDescription = models.CharField(max_length=100, verbose_name='Описание')
+    szDescription = models.CharField(
+        max_length=100,
+        default='', null=True, blank=True,
+        verbose_name='Описание',
+        help_text='Предназначение и описание шаблона')
     szVar = models.CharField(
         max_length=16, default='var',
         null=True, blank=True,
-        verbose_name='Переменная'
+        verbose_name='Переменная',
+        help_text='Переменная через которую этот шаблон принимает данные'
     )
 
     def __unicode__(self):

@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 """
-ASGI config for roll_cms project.
+Конфигурация ASGI для проекта roll_cms.
 
-It exposes the ASGI callable as a module-level variable named ``application``.
+Он предоставляет вызываемый ASGI как переменную уровня модуля с именем «приложение».
 
-For more information on this file, see
+Дополнительные сведения об этом файле см. документацию:
 https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 """
 
