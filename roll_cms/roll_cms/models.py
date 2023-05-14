@@ -29,6 +29,7 @@ class TbTemplate(models.Model):
     )
     szJinjaCode = models.TextField(
         default='', null=True, blank=True,
+
         verbose_name='Шаблон',
         help_text='Код шаблона (jinja2)',
         # TODO: добавить виджет codemirror для jinja2

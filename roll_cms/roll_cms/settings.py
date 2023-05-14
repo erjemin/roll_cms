@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'codemirror',   # виджет для редактора кода в админке
+
     'roll_cms.apps.RollCmsConfig',
 ]
 
