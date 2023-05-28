@@ -66,7 +66,7 @@ MY_TOUCH_RELOAD_PROD: str = '/home/web/oknardia-ru/logs/touch-reload.txt'
 # расположение touch-reload-файла для "передёргивания" uWSGI
 MY_TOUCH_RELOAD_DEV_HOME1 = 'M:\\cloud-mail.ru\\PRJ\\2023_roll_cms\\logs\\touch-reload.txt'
 MY_TOUCH_RELOAD_DEV_HOME2 = '/Users/e-serg/PRJ/2023_roll_cms/logs/touch-reload.txt'
-MY_TOUCH_RELOAD_DEV_WORK = 'M:\\cloud-mail.ru\\PRJ\\PRJ_RSVO_south\\logs\\touch-reload.txt'
+MY_TOUCH_RELOAD_DEV_WORK = 'M:\\cloud-mail.ru\\PRJ\\2023_roll_cms\\logs\\touch-reload.txt'
 MY_TOUCH_RELOAD_PROD = '/home/web/roll_cms/logs/touch-reload.txt'
 
 # НАСТРОЙКИ ДЛЯ СИСТЕМЫ УПРАВЛЕНИЯ БАЗЫ ДАННЫХ (предполагается использование MariaDB)
@@ -91,7 +91,7 @@ MY_DATABASE_PORT_PROD: str = '3306'
 # database user
 MY_DATABASE_USER_HOME1: str = 'web'
 MY_DATABASE_USER_HOME2: str = 'web'
-MY_DATABASE_USER_WORK: str = 'web'
+MY_DATABASE_USER_WORK: str = 'eserg'
 MY_DATABASE_USER_PROD: str = 'web'
 
 # database password

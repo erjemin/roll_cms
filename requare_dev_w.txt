@@ -1,0 +1,10 @@
+asgiref==3.7.1
+sqlparse==0.4.4
+typing_extensions==4.6.2
+tzdata==2023.3
+Django==4.2.1
+
+MarkupSafe==2.1.2
+Jinja2==3.1.2
+
+mysqlclient @ file:///M:/cloud-mail.ru/PRJ/2023_roll_cms/mysqlclient-1.4.6-cp39-cp39-win32.whl#sha256=7e0fb8aa09b57b3d92d8484f3ad507d1c7cc74de5b41946ea704d4d1907b0fe4

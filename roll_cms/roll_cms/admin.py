@@ -5,40 +5,103 @@ from django import forms
 from django.db import models
 from django.forms import TextInput, Textarea
 # from ckeditor.widgets import CKEditorWidget
+# from codemirror import CodeMirrorTextarea
 from roll_cms.models import TbTemplate
 # from web.add_function import safe_html_special_symbols
 from roll_cms.settings import *
-from codemirror.widgets import CodeMirror
+
+# from codemirror.widgets import CodeMirror
+
+# class MyModelAdmin(admin.ModelAdmin):
+
+
+# admin.site.register(MyModel, MyModelAdmin)
 
 
 # ОПИСАНИЯ КЛАССОВ АДМИНКИ
-# подключение редактора кода CodeMirror к полю szJinjaCode в админке
-#
-# https://webdevblog.ru/redaktirovanie-json-polej-cherez-django-adminku/ ??
-class MyJinjaForm(forms.ModelForm):
+
+class TemplateAdminForm(forms.ModelForm):
+    # подключение codemirror для редактирования шаблонов Django и Jinja2 (для поля szJinjaCode в админке)
+    # рецепт: https://webdevblog.ru/redaktirovanie-json-polej-cherez-django-adminku/
     class Meta:
         model = TbTemplate
-        # widgets = {
-        #     'szJinjaCode': forms.Textarea(widget=CodeMirror(mode='html')),
-        # }
+        fields = "__all__"
         widgets = {
-            'data': forms.Textarea(attrs={'class': 'json-editor'})
+            'szJinjaCode': forms.Textarea(attrs={'class': 'html-editor'})
         }
-        fields = '__all__'  # required for Django 3.x
+
+
+class JsonAdminForm(forms.ModelForm):
+    # подключение codemirror для редактирования json
+    # рецепт: https://webdevblog.ru/redaktirovanie-json-polej-cherez-django-adminku/
+    class Meta:
+        model = TbTemplate
+        fields = "__all__"
+        widgets = {
+            'data': forms.Textarea(attrs={'class': 'json-editor'}),
+        }
 
 
 # -- Управление шаблонами
 @admin.register(TbTemplate)
 class AdminTemplate(admin.ModelAdmin):
-    form = MyJinjaForm
+    # подключение формы TemplateAdminForm
+    form = TemplateAdminForm
+
+    class Media:
+        # настройка подключения codemirror
+        css = {
+            'all': (
+                '/static/codemirror-5.65.13/doc/docs.css',
+                '/static/codemirror-5.65.13/lib/codemirror.css',
+                '/static/codemirror-5.65.13/addon/hint/show-hint.css',
+                # '/static/codemirror-5.65.13/addon/lint/lint.css',
+                '/static/codemirror-5.65.13/theme/rubyblue.css',
+
+            )
+        }
+        # для редактора json
+        # js = (
+        #     '/static/codemirror-5.65.13/lib/codemirror.js',
+        #     # '/static/codemirror/formatting.js',
+        #     '/static/codemirror-5.65.13/mode/javascript/javascript.js',
+        #     '/static/codemirror-5.65.13/addon/lint/lint.js',
+        #     '/static/codemirror-5.65.13/addon/lint/json-lint.js',
+        #     '/static/js/codemirror/init_json.js'
+        # )
+        js = (
+            '/static/codemirror-5.65.13/lib/codemirror.js',
+            '/static/codemirror-5.65.13/addon/hint/show-hint.js',
+            '/static/codemirror-5.65.13/addon/hint/xml-hint.js',
+            '/static/codemirror-5.65.13/addon/hint/html-hint.js',
+            '/static/codemirror-5.65.13/mode/xml/xml.js',
+            # '/static/codemirror/formatting.js',
+            '/static/codemirror-5.65.13/mode/javascript/javascript.js',
+            '/static/codemirror-5.65.13/mode/css/css.js',
+            '/static/codemirror-5.65.13/mode/htmlmixed/htmlmixed.js',
+
+            # '/static/codemirror-5.65.13/addon/runmode/colorize.js',
+            # '/static/codemirror-5.65.13/addon/hint/html-hint.js',
+            # '/static/codemirror-5.65.13/addon/lint/lint.js',
+            # '/static/codemirror-5.65.13/addon/lint/html-lint.js',
+            '/static/js/codemirror/init_jinja2.js'
+        )
+
     search_fields = ['szFileName', 'szDescription', 'szJinjaCode']
     list_display = ('id', 'szFileName', 'szDescription', 'szVar')
     list_display_links = ('id', 'szFileName', 'szDescription', )
     empty_value_display = '<b style=\'color:red;\'>—//—</b>'
-    formfield_overrides = {
-        # models.CharField: {'widget': TextInput(attrs={'size': '100%'})},
-        models.TextField: {'widget': CodeMirror(attrs={'rows': 4, 'cols': 40})},
-    }
+    # set widget codemorror for szJinjaCode
+    # formfield_overrides = {
+    #     models.TextField: {'widget': CodeMirror()},
+    # }
+    # formfield_overrides = {
+    #     #     # models.CharField: {'widget': TextInput(attrs={'size': '100%'})},
+    #     #     models.TextField: {'widget': CodeMirror(attrs={'rows': 4, 'cols': 40})},
+    #     models.TextField: {'widget': CodeMirrorTextarea(
+    #         mode="python", theme="cobalt", config={"fixedGutter": True, }
+    #     )},
+    # }
     actions_on_top = False
     actions_on_bottom = True
 

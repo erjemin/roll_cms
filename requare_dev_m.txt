@@ -6,5 +6,3 @@ Jinja2==3.1.2
 MarkupSafe==2.1.2
 
 mysqlclient==2.1.1
-
-django-codemirror==1.0.1

@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'codemirror',   # виджет для редактора кода в админке
+    # 'codemirror',   # виджет для редактора кода в админке
 
     'roll_cms.apps.RollCmsConfig',
 ]
@@ -160,11 +160,32 @@ elif DEBUG and socket.gethostname() in MY_HOST_HOME2:
     TOUCH_RELOAD = MY_TOUCH_RELOAD_DEV_HOME2
 elif DEBUG and socket.gethostname() in MY_HOST_WORK:
     # Разработка: Офисный компьютер под Windows
-    pass
+    print('Разработка: Офисный компьютер под Windows')
+    MEDIA_ROOT = MY_MEDIA_ROOT_WORK
+    SITEMAP_ROOT = MY_SITEMAP_ROOT_WORK
+    STATICFILES_DIRS = [
+        MY_STATIC_ROOT_WORK,
+    ]
+    # путь к каталогу static (в эту переменную использовать для указания пути где будут делаться кэш-картинки)
+    # STATIC_BASE_PATH = MY_STATIC_BASE_PATH_WORK
+    DATABASES = {
+        'default': {
+            'ENGINE': "django.db.backends.mysql",
+            'HOST': MY_DATABASE_HOST_WORK,
+            'PORT': MY_DATABASE_PORT_WORK,  # Set to "" for default. Not used with sqlite3.
+            'NAME': MY_DATABASE_NAME_WORK,  # Not used with sqlite3.
+            'USER': MY_DATABASE_USER_WORK,  # Not used with sqlite3.
+            'PASSWORD': MY_DATABASE_PASSWORD_WORK,  # Not used with sqlite3.
+            # 'OPTIONS': { 'autocommit': True, }
+        }
+    }
+    TOUCH_RELOAD = MY_TOUCH_RELOAD_DEV_WORK
 else:
     # Продакшн: режим DEBUG отключен или неизвестный хостнейм
     pass
 
+# Настройки для работы с виджетом CodeMirror
+# CODEMIRROR_PATH = STATIC_URL + 'js/codemirror/'
 
 # Тип переменной для ключей primary key в моделях
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
