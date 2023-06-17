@@ -17,7 +17,16 @@ import json
 
 
 class TbTemplate(models.Model):
-    """ Шаблоны """
+    """ Шаблоны. Таблица в БД `roll_cms_tbtemplate` """
+    # --------------+----------------------------------+--------------+------+---------+----------------+
+    # поле          | Назначние                        | тип          | NULL | DEFAULT | Extra          |
+    # --------------+----------------------------------+--------------+------+---------+----------------+
+    # id            | первичный ключ                   | bigint(20)   | NO   | NULL    | auto_increment |
+    # szFileName    | имя файла шаблона                | varchar(100) | YES  | ''      | unique         |
+    # szJinjaCode   | код шаблона                      | longtext     | YES  | ''      |                |
+    # szDescription | назначение/описание шаблона      | varchar(100) | YES  | ''      |                |
+    # szVar         | переменная для передачи значений | varchar(16)  | YES  | 'var'   |                |
+    # --------------+----------------------------------+--------------+------+---------+----------------+
     szFileName = models.CharField(
         # primary_key=True,  # первичный ключ
         default=".jinja2", db_index=True, unique=True,  # индекс и уникальность
@@ -25,29 +34,24 @@ class TbTemplate(models.Model):
         max_length=100,
         verbose_name="Файл Шаблона",
         help_text="Имя файла шаблона (расширение .jinja2 или .html)<br/>"
-                  "<b style='color:red'>ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b>"
+                  "<b style='color:red'>ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b>",
     )
     szJinjaCode = models.TextField(
         default='', null=True, blank=True,
-
         verbose_name='Шаблон',
         help_text='Код шаблона (jinja2)',
-        # TODO: добавить виджет codemirror для jinja2
-        # https://github.com/lambdalisue/django-codemirror-widget
-        # https://github.com/onrik/django-codemirror
-        # https://github.com/codemirror/codemirror5
-        # https://codemirror.net/5/doc/manual.html
     )
     szDescription = models.CharField(
         max_length=100,
         default='', null=True, blank=True,
         verbose_name='Описание',
-        help_text='Предназначение и описание шаблона')
+        help_text='Назначение/описание шаблона',
+    )
     szVar = models.CharField(
         max_length=16, default='var',
         null=True, blank=True,
         verbose_name='Переменная',
-        help_text='Переменная через которую этот шаблон принимает данные'
+        help_text='Переменная через которую этот шаблон принимает данные',
     )
 
     def __unicode__(self):

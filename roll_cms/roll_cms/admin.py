@@ -23,11 +23,18 @@ from roll_cms.settings import *
 class TemplateAdminForm(forms.ModelForm):
     # подключение codemirror для редактирования шаблонов Django и Jinja2 (для поля szJinjaCode в админке)
     # рецепт: https://webdevblog.ru/redaktirovanie-json-polej-cherez-django-adminku/
+    # рецепт не работает для одновременной одсветки синтесиса нескольких языков
+    # TODO: возможно стоит попробовать другие рецепты (через виждеты):
+    # https://github.com/lambdalisue/django-codemirror-widget
+    # https://github.com/onrik/django-codemirror
+    # https://github.com/codemirror/codemirror5
+    # https://codemirror.net/5/doc/manual.html
+
     class Meta:
         model = TbTemplate
         fields = "__all__"
         widgets = {
-            'szJinjaCode': forms.Textarea(attrs={'class': 'html-editor'})
+            'szJinjaCode': forms.Textarea(attrs={'class': 'code_editor'})
         }
 
 
@@ -45,17 +52,14 @@ class JsonAdminForm(forms.ModelForm):
 # -- Управление шаблонами
 @admin.register(TbTemplate)
 class AdminTemplate(admin.ModelAdmin):
-    # подключение формы TemplateAdminForm
-    form = TemplateAdminForm
-
     class Media:
         # настройка подключения codemirror
         css = {
             'all': (
-                '/static/codemirror-5.65.13/doc/docs.css',
+                # '/static/codemirror-5.65.13/doc/docs.css',
                 '/static/codemirror-5.65.13/lib/codemirror.css',
                 '/static/codemirror-5.65.13/addon/hint/show-hint.css',
-                # '/static/codemirror-5.65.13/addon/lint/lint.css',
+                '/static/codemirror-5.65.13/addon/lint/lint.css',
                 '/static/codemirror-5.65.13/theme/rubyblue.css',
 
             )
@@ -71,37 +75,31 @@ class AdminTemplate(admin.ModelAdmin):
         # )
         js = (
             '/static/codemirror-5.65.13/lib/codemirror.js',
-            '/static/codemirror-5.65.13/addon/hint/show-hint.js',
-            '/static/codemirror-5.65.13/addon/hint/xml-hint.js',
-            '/static/codemirror-5.65.13/addon/hint/html-hint.js',
+            # '/static/codemirror-5.65.13/addon/hint/show-hint.js',
+            # '/static/codemirror-5.65.13/addon/hint/xml-hint.js',
+            # '/static/codemirror-5.65.13/addon/hint/html-hint.js',
+            '/static/codemirror-5.65.13/addon/mode/multiplex.js',
+            '/static/codemirror-5.65.13/addon/mode/overlay.js',
             '/static/codemirror-5.65.13/mode/xml/xml.js',
-            # '/static/codemirror/formatting.js',
-            '/static/codemirror-5.65.13/mode/javascript/javascript.js',
-            '/static/codemirror-5.65.13/mode/css/css.js',
+            # '/static/codemirror-5.65.13/mode/javascript/javascript.js',
+            # '/static/codemirror-5.65.13/mode/css/css.js',
             '/static/codemirror-5.65.13/mode/htmlmixed/htmlmixed.js',
+            '/static/codemirror-5.65.13/addon/lint/json-lint.js',
+            # '/static/codemirror-5.65.13/mode/jinja2/jinja2.js',
 
             # '/static/codemirror-5.65.13/addon/runmode/colorize.js',
             # '/static/codemirror-5.65.13/addon/hint/html-hint.js',
             # '/static/codemirror-5.65.13/addon/lint/lint.js',
             # '/static/codemirror-5.65.13/addon/lint/html-lint.js',
+            # '/static/codemirror/formatting.js',
             '/static/js/codemirror/init_jinja2.js'
+            # '/static/js/codemirror/init_html.js'
         )
-
+    form = TemplateAdminForm    # подключение формы TemplateAdminForm
     search_fields = ['szFileName', 'szDescription', 'szJinjaCode']
     list_display = ('id', 'szFileName', 'szDescription', 'szVar')
     list_display_links = ('id', 'szFileName', 'szDescription', )
     empty_value_display = '<b style=\'color:red;\'>—//—</b>'
-    # set widget codemorror for szJinjaCode
-    # formfield_overrides = {
-    #     models.TextField: {'widget': CodeMirror()},
-    # }
-    # formfield_overrides = {
-    #     #     # models.CharField: {'widget': TextInput(attrs={'size': '100%'})},
-    #     #     models.TextField: {'widget': CodeMirror(attrs={'rows': 4, 'cols': 40})},
-    #     models.TextField: {'widget': CodeMirrorTextarea(
-    #         mode="python", theme="cobalt", config={"fixedGutter": True, }
-    #     )},
-    # }
     actions_on_top = False
     actions_on_bottom = True
 
