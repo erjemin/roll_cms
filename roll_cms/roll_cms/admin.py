@@ -6,9 +6,13 @@ from django.db import models
 from django.forms import TextInput, Textarea
 # from ckeditor.widgets import CKEditorWidget
 # from codemirror import CodeMirrorTextarea
-from roll_cms.models import TbTemplate
+from roll_cms.models import TbTemplate, TbRoll
 # from web.add_function import safe_html_special_symbols
 from roll_cms.settings import *
+from roll_cms.add_function import safe_html_special_symbols
+import roll_cms.EMT as EMT
+import pytils
+import random
 
 # from codemirror.widgets import CodeMirror
 
@@ -23,8 +27,8 @@ from roll_cms.settings import *
 class TemplateAdminForm(forms.ModelForm):
     # подключение codemirror для редактирования шаблонов Django и Jinja2 (для поля szJinjaCode в админке)
     # рецепт: https://webdevblog.ru/redaktirovanie-json-polej-cherez-django-adminku/
-    # рецепт не работает для одновременной одсветки синтесиса нескольких языков
-    # TODO: возможно стоит попробовать другие рецепты (через виждеты):
+    # рецепт не работает для одновременной подсветки синтаксиса нескольких языков
+    # TODO: возможно стоит попробовать другие рецепты (через видждеты), но вряд-ли поможет:
     # https://github.com/lambdalisue/django-codemirror-widget
     # https://github.com/onrik/django-codemirror
     # https://github.com/codemirror/codemirror5
@@ -95,6 +99,7 @@ class AdminTemplate(admin.ModelAdmin):
             '/static/js/codemirror/init_jinja2.js'
             # '/static/js/codemirror/init_html.js'
         )
+
     form = TemplateAdminForm    # подключение формы TemplateAdminForm
     search_fields = ['szFileName', 'szDescription', 'szJinjaCode']
     list_display = ('id', 'szFileName', 'szDescription', 'szVar')
@@ -103,16 +108,139 @@ class AdminTemplate(admin.ModelAdmin):
     actions_on_top = False
     actions_on_bottom = True
 
-    # Переопределяем способ получения полей из модели в форму админки.
-    # Поле szJinjaCode у нас будет читаться из файла, а не из БД
-    # Рецепт написал сам: https://qna.habr.com/q/1201124
     def get_fields(self, request, obj=None):
+        # Переопределяем способ получения полей из модели в форму админки.
+        # Поле szJinjaCode у нас будет читаться из файла, а не из БД
+        # Рецепт написал сам: https://qna.habr.com/q/1201124
         try:
             with open(Path(TEMPLATES_DIR) / obj.szFileName, "r", encoding='utf-8') as template:
                 obj.szJinjaCode = template.read()
         except (AttributeError, FileNotFoundError, TypeError):
             pass
         return ['szFileName', 'szDescription', 'szJinjaCode', 'szVar']
+
+
+# -- Управление роллами
+class RollAdminForm(forms.ModelForm):
+    # добавляем поле для типографа (поле фиктивное, его нет в модели и БД, но его обработка происходит в pre_save)
+    typograf = forms.BooleanField(label='Типограф', required=False, initial=False,
+                                  help_text='Обработать через встроенный <a href="http://mdash.ru" target="_blank">'
+                                            'Типограф Муравьёва 3.5</a><br />'
+                                            '<small><b>ХОРОШИЙ ТИПОГРАФ, ИНОГДА ДАЖЕ СЛИШКОМ</b><br />'
+                                            '&laquo;приклеивает&raquo; союзы и числительные, поддерживает неразрывные'
+                                            '<br />конструкции, замена тире, очень <b>навороченная расстановка кавы-'
+                                            '<br />чек</b> (с горизонтальным смещением, как при книжной типографике,'
+                                            '<br />идеально для цитат и прямой речи), расставляет абзацы (кроме<br />'
+                                            'заголовков) и т.п. <b>ИНОГДА ГЛЮЧИТ! ПРОВЕРЯЙТЕ РЕЗУЛЬТАТ!!</b></small>')
+    hyphenation = forms.BooleanField(label='Переносы', required=False, initial=False,
+                                     help_text='Включить автоматические переносы слов по слогам<br />'
+                                               '<small>Переносы расставляются только в словах длинее 12 символов.'
+                                               ' <b>МОЖДЕТ НЕ РАБОТАТЬ ПОСЛЕ ТИПОГРАФА!</b></small>')
+
+    class Meta:
+        model = TbRoll
+        fields = "__all__"
+        widgets = {
+            'szRollText': forms.Textarea(attrs={'class': 'code_editor', 'style': 'font-family: "Courier New", monospace;'}),
+            # 'szRollTitle': forms.CharField(),
+        }
+
+
+@admin.register(TbRoll)
+class AdminRoll(admin.ModelAdmin):
+    class Media:
+        # настройка подключения codemirror
+        css = {'all': ('/static/codemirror-5.65.13/lib/codemirror.css',
+                       '/static/codemirror-5.65.13/addon/hint/show-hint.css',
+                       '/static/codemirror-5.65.13/addon/lint/lint.css',
+                       '/static/codemirror-5.65.13/theme/rubyblue.css', )}
+        js = ('/static/codemirror-5.65.13/lib/codemirror.js',
+              '/static/codemirror-5.65.13/addon/mode/multiplex.js',
+              '/static/codemirror-5.65.13/addon/mode/overlay.js',
+              '/static/codemirror-5.65.13/mode/xml/xml.js',
+              '/static/codemirror-5.65.13/mode/htmlmixed/htmlmixed.js',
+              '/static/js/codemirror/init_html.js',
+                '/static/codemirror-5.65.13/addon/hint/show-hint.js',
+              )
+
+    form = RollAdminForm
+
+    # Переопределяем способ получения полей из модели в форму админки (чтобы получить фиктивные поля).
+    def get_form(self, request, obj=None, **kwargs):
+        return super().get_form(request, obj, **kwargs)
+
+    # переопределяем метод сохранения модели
+    def save_model(self, request, obj, form, change):
+        # Проверяем необходимость расстановки переносов
+        try:
+            if form.cleaned_data['hyphenation']:
+                # если нажата галочка "Переносы"
+                print('Переносим')
+                # obj.szRollText = hyphenation(obj.szRollText)
+        except KeyError:
+            pass
+
+        # Переопределяем включен ли типограф
+        try:
+            if form.cleaned_data['typograf']:
+                # если нажата галочка "Типограф", то типографируем
+                emt_title = EMT.EMTypograph()
+                emt_title.setup({'Text.paragraphs': 'off'})
+                emt_title.set_text(obj.szRollTitle)
+                obj.szRollTitle = emt_title.apply()
+                emt_roll_text = EMT.EMTypograph()
+                emt_roll_text.setup({'Text.paragraphs': 'on'})
+                emt_roll_text.set_text(obj.szRollText)
+                emt_roll_text.set_tag_layout(layout=EMT.LAYOUT_STYLE)
+                obj.szRollText = emt_roll_text.apply()
+        except KeyError:
+            pass
+
+        # Проверяем наличие URL-слага и его уникальность
+        if obj.szRollSlug is None or obj.szRollSlug == "" or " " in obj.szRollSlug:
+            result_slug = pytils.translit.slugify(
+                safe_html_special_symbols(obj.szRollName)
+            ).lower()
+            while TbRoll.objects.filter(szRollSlug=result_slug).count() != 0:
+                f"{result_slug[0:-3]}-{int(random.uniform(0, 255)):x}"
+            obj.szRollSlug = result_slug
+        obj.save()
+
+    formfield_overrides = {models.TextField: {'widget': forms.Textarea(attrs={'class': 'code_editor'})}}
+    list_display = ('id', 'szRollName', 'kRollTemplate', 'kDefaultContentTemplate', 'iRollItemInPage',
+                    'szRollSortRule', 'bRollPublish')
+    list_display_links = ('id', 'szRollName')
+    search_fields = ['szRollName', 'szRollTitle', 'szRollText']
+    list_editable = ('bRollPublish',)
+
+
+    # Настройка страницы редактирования
+    fieldsets = [
+        (None, {
+            'fields': ('bRollPublish', 'szRollName', ),
+        }),
+        ('SLUG & REDIRECT', {
+            'fields': ('szRollSlug', 'szRollRedirectTo', ),
+            'classes': ('collapse',),
+        }),
+        ('ШАБЛОНЫ', {
+            'fields': ('kRollTemplate', 'kDefaultContentTemplate', ),
+        }),
+        ('СОРТИРОВКА, ФИЛЬТРАЦИЯ и ПАГИНАЦИЯ', {
+            'fields': ('szRollSortRule', 'szRollFilterRule', 'iRollItemInPage',),
+            'classes': ('collapse',),
+        }),
+        ('РОЛЛ (заголовок, картинка, вводный текст)', {
+            'fields': ('szRollTitle', 'kRollImgPreview', 'szRollText',),
+        }),
+        ('ТИПОГРАФ И ПЕРЕНОСЫ', {
+            'fields': (('typograf', 'hyphenation',),),
+            'classes': ('collapse',),
+        }),
+    ]
+    empty_value_display = '<b style=\'color:red;\'>—//—</b>'
+    actions_on_top = False
+    actions_on_bottom = True
 
 
 # admin.site.register(TbTemplate, AdminTemplate)

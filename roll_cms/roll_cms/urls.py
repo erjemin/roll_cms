@@ -24,6 +24,16 @@ from roll_cms import views
 
 
 urlpatterns = [
+    # для работы django-filer
+    re_path(r'^filer/', include('filer.urls')),
+
+    # # для работы ckeditor_filebrowser_filer и ckeditor
+    # path('ckeditor/', include('filer.urls')),
+    # re_path(r'^filebrowser_filer/', include('ckeditor_filebrowser_filer.urls')),
+    # # для починки ckeditor_filebrowser в соответствии с рецептом
+    # # https://githubhelp.com/nephila/django-ckeditor-filebrowser-filer/issues/41
+    # re_path(r'^filebrowser_filer/filer_', include('ckeditor_filebrowser_filer.urls')),
+
     path('admin/', admin.site.urls),
 
     re_path(r'^$', views.index),

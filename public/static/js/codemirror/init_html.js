@@ -8,8 +8,8 @@
                 lineNumbers: true,
                 tabSize: 2,
                 // mode: 'text/html',
-                mode: 'htmlmixed',
                 // mode: 'xml',
+                mode: 'htmlmixed',
                 gutters: ['CodeMirror-lint-markers'],
                 theme: 'rubyblue',
                 json: true,
@@ -17,6 +17,7 @@
                 autoCloseTags: true,
                 matchBrackets: true,
             });
+            editor.setSize('170ex', 'auto');  // Ширина 120 знаков... высота авто (вертикальная прокрутка не появляется)
         });
     });
 })();

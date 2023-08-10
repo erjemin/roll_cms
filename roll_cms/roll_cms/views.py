@@ -47,7 +47,7 @@ def _index(request: HttpRequest,
         try:
             # найдём блок по части URL
             q_block = TbBlock.objects.get(szBlockSlug=urn_block)
-            if q_block.bBlockPublish:
+            if q_block.bRollPublish:
                 # блок опубликован к доступу через URL/URN
                 template = q_block.kRollTemplate.szFileName
             else:

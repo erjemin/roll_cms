@@ -19,12 +19,12 @@ MY_ALLOWED_HOSTS = [
 ]
 
 # Хостs на которых может работать приложение
-MY_HOST_HOME1 = ['erjemin-home', ]      # разработка домашний (Windows)
-MY_HOST_HOME2 = ['M1', 'm1.local', ]    # разработка домашний (MacOS)
+MY_HOST_HOME1 = ['erjemin-home', ]         # разработка домашний (Windows)
+MY_HOST_HOME2 = ['m1.N1', 'm1.local', ]    # разработка домашний (MacOS)
 MY_HOST_WORK = ['seremin', ]            # разработка офис (Windows)
 MY_HOST_DEV = MY_HOST_HOME1 + MY_HOST_HOME2 + MY_HOST_WORK
 MY_HOST_PROD = [
-    'Z4',              # продакшн-тест z7.msk.rsvo.local)
+    'orangepi5',       # продакшн-тест orangepi5)
     'vm2203242538',    # продакшн vds-хостинг masterhost
 ]
 

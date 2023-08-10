@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 'codemirror',   # виджет для редактора кода в админке
+    'easy_thumbnails.apps.EasyThumbnailsConfig',
+    'filer.apps.FilerConfig',
+    'mptt.apps.MpttConfig',
 
     'roll_cms.apps.RollCmsConfig',
 ]
@@ -115,6 +117,11 @@ FIRST_DAY_OF_WEEK = 1                           # 1'st day week -- monday
 SHORT_DATE_FORMAT = '%Y-%m-%d'
 SHORT_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
+# Security
+# Останавливаем в http-заголовок 'X-Content-Type-Options: nosniff' для защиты от снифинга
+# (запрет показа сайта в iframe на другом сайте)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
 # НАСТРОЙКИ ДЛЯ ПОЧТОВОГО СЕРВЕРА (они одинаковые для DEV и PROD)
 EMAIL_HOST = MY_EMAIL_HOST
 EMAIL_PORT = MY_EMAIL_PORT
@@ -184,11 +191,78 @@ else:
     # Продакшн: режим DEBUG отключен или неизвестный хостнейм
     pass
 
-# Настройки для работы с виджетом CodeMirror
-# CODEMIRROR_PATH = STATIC_URL + 'js/codemirror/'
-
 # Тип переменной для ключей primary key в моделях
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Настройки для кэширования
+# https://docs.djangoproject.com/en/4.2/topics/cache/
+
+
+# ------------------- Настройки для django-filer -------------------
+# Настройки миниатюр THUMBNAIL (батарейка по созданию превьюшек)
+# Документацию см: https://easy-thumbnails.readthedocs.io/en/latest/ref/settings/
+if DEBUG:
+    THUMBNAIL_DEBUG = True
+else:
+    THUMBNAIL_DEBUG = False
+THUMBNAIL_DEFAULT_STORAGE = 'easy_thumbnails.storage.ThumbnailFileSystemStorage'    # Устанавливает класс,
+                                                                                    # для сохранения миниатюр.
+THUMBNAIL_NAMER = 'easy_thumbnails.namers.default'                  # Устанавливает класс, для генерации имен файлов.
+THUMBNAIL_SOURCE_GENERATORS = ('easy_thumbnails.source_generators.pil_image', )     # Устанавливает классы, для
+                                                                                    # генерации исходных изображений.
+THUMBNAIL_PROCESSORS = (
+    'easy_thumbnails.processors.colorspace',
+    'easy_thumbnails.processors.autocrop',
+    'easy_thumbnails.processors.scale_and_crop',
+    'easy_thumbnails.processors.filters',
+    'easy_thumbnails.processors.background',
+)
+# Определяем псевдонимы миниатюр THUMBNAIL
+#   size -- обязательный параметр, определяет границы, в которые должно вписываться сгенерированное изображение.
+#   quality -- число N — качество JPEG, целое число от 1 до 100. По умолчанию 85.
+#   subsampling -- число <N> устанавливает уровень субдискретизации цвета JPEG, где N:
+#     2 -- 4:1:1 (простые миниатюры, так и PIL по умолчанию)
+#     1 -- 4:2:2 (более четкие цветовые границы, небольшое увеличение размера файла)
+#     0 -- 4:4:4 (очень четкие цветовые границы, увеличение размера файла примерно на 15%).
+#    autocrop -- удаляет все ненужные пробелы с краев исходного изображения.
+#    bw -- преобразует изображение в оттенки серого.
+#    replace_alpha=#colorcode -- заменяет любой слой прозрачности сплошным цветом.
+#    crop=<smart|scale|W,H> -- обрезает края изображения, чтобы соответствовать соотношению сторон size
+#        перед изменением размера.
+#        smart -- изображение постепенно обрезается до запрошенного размера путем удаления
+#          фрагментов с краев с наименьшей энтропией.
+#        scale -- по крайней мере одно измерение соответствует заданным размерам.
+#        W,H -- изменяет поведение начала обрезки. Например: crop="0,0" -- будет обрезаться с левого и верхнего
+#          краев. crop="-10,-0" обрежет правый край (со смещением 10%) и нижний край. crop=",0" --
+#          сохранит поведение по умолчанию для оси x (горизонтальное центрирование изображения) и обрежет
+#          от верхнего края.
+THUMBNAIL_ALIASES = {
+    'cover': {
+        'x-small': {'size': (64, 64), 'autocrop': True},
+        'small': {'size': (180, 180), 'autocrop': True},
+        'preview': {'size': (340, 340), 'autocrop': True},
+        'standard': {'size': (680, 680), 'autocrop': True},
+        'big': {'size': (1140, 1140), 'autocrop': True},
+    },
+}
+THUMBNAIL_CACHE_DIMENSIONS = True   # Сохранять ли размеры миниатюр в базе данных (кеширование)
+THUMBNAIL_CHECK_CACHE_MISS = False  # Если размеры миниатюры не найдены в базе данных, то проверять наличие файла
+THUMBNAIL_DEFAULT_OPTIONS = {'subsampling': 1}      # Устанавливает параметры миниатюры по умолчанию.
+THUMBNAIL_PREFIX = 'thumbs_'                # Устанавливает префикс, используемый для создания файлов миниатюр.
+THUMBNAIL_EXTENSION = 'jpg'                 # Устанавливает расширение файла, используемое для миниатюр.
+THUMBNAIL_TRANSPARENCY_EXTENSION = 'png'    # Устанавливает расширение файла, используемое для миниатюр с прозрачностью.
+THUMBNAIL_QUALITY = 85                      # Устанавливает качество JPEG, целое число от 1 до 100. По умолчанию 85.
+THUMBNAIL_WIDGET_OPTIONS = {'size': (80, 80)}       # Устанавливает параметры миниатюры, используемые в виджете.
+THUMBNAIL_HIGHRES_INFIX = '_2x'     # Устанавливает инфикс, для различения эскизов для дисплеев Retina.
+THUMBNAIL_HIGH_RESOLUTION = True    # Включает миниатюры для дисплеев Retina.
+THUMBNAIL_PRESERVE_EXTENSIONS = ('png', 'gif')      # Устанавливает файлы, миниатюры которых не преобразуются в JPEG.
+THUMBNAIL_PROGRESSIVE = 600      # Порог размера (в px), после которого миниатюры будут progressive-jpeg (черезстрочные)
+
+
+
+FILER_SUBJECT_LOCATION_IMAGE_DEBUG = True
+
+
 
