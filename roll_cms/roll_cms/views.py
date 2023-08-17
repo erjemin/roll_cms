@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render, HttpResponseRedirect
+from django.template.exceptions import TemplateDoesNotExist
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.http import Http404  # , request
 from django.utils.timezone import now
+from jinja2.exceptions import TemplateNotFound, TemplateSyntaxError
 from roll_cms.models import TbTemplate
 from roll_cms.add_function import *
 import re
@@ -16,7 +18,14 @@ def index(request: HttpRequest) -> HttpResponse:
     :param
     :return response: исходящий http-ответ
     """
-    return render(request, "index.jinja2", {})
+    try:
+        return render(request, "index.jinja2", {})
+    except TemplateDoesNotExist as e:
+        # Обработка ошибки отсутствия шаблона
+        return HttpResponse(f"RollCSM не нашла шаблон для ролла/контента \"{e}\". Создайте его.", status=424)
+    except TemplateNotFound as e:
+        # Обработка ошибки отсутствия вложенного шаблона
+        return HttpResponse(f"RollCSM не нашла производный шаблон \"{e}\". Создайте его.", status=424)
 
 
 def _index(request: HttpRequest,
@@ -24,7 +33,7 @@ def _index(request: HttpRequest,
           urn_roll: str = None,
           urn_content: str = None,
           page: int = 0) -> HttpResponse:
-    """ универсальный обработчик для всех страниц сайта
+    """ Универсальный обработчик для всех страниц сайта
 
     :param request: входящий http-запрос
     :param urn_block: часть URL для выборки блоков (из таблицы TbBlock)
