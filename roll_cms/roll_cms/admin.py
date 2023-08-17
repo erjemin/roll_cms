@@ -9,7 +9,7 @@ from django.forms import TextInput, Textarea
 from roll_cms.models import TbTemplate, TbRoll
 # from web.add_function import safe_html_special_symbols
 from roll_cms.settings import *
-from roll_cms.add_function import safe_html_special_symbols
+from roll_cms.add_function import safe_html_special_symbols, hyphenation_in_text
 import roll_cms.EMT as EMT
 import pytils
 import random
@@ -134,13 +134,17 @@ class RollAdminForm(forms.ModelForm):
                                             'идеально для цитат и прямой речи), расставляет абзацы (кроме '
                                             'заголовков) и т.п.</small>')
     hyphenation = forms.BooleanField(label='Переносы', required=False, initial=False,
-                                     help_text='Включить автоматические переносы слов по слогам<br />'
-                                               '<small>Переносы расставляются только в словах длинее 12 символов.'
-                                               ' <b>МОЖДЕТ НЕ РАБОТАТЬ ПОСЛЕ ТИПОГРАФА!</b></small>')
+                                     help_text='Включить автоматические переносы    <br />'
+                                               'русскоязычных слов по слогам<br /><small>'
+                                               'В словах с расставленными переносами<br />'
+                                               '(повторно) не работает</small>')
     hyphenation_len = forms.IntegerField(label='Длина слова', required=False, initial=14,
-                                         help_text='Минимальная длина слова для переноса<br />'
-                                                   '<small>Переносы расставляются только в словах длиннее 14 символов.')
-
+                                         help_text='Минимальная длина слова<br />'
+                                                   'для переноса. <small>Переносы расстав-<br />'
+                                                   'ляются только в словах длиннее</small>.')
+    use_shy_for_hyphenation = forms.BooleanField(label='Использовать &shy;', required=False, initial=False,
+                                                 help_text='Использовать &amp;shy;<br />'
+                                                           '<small>Иначе через юникод-символ</small>')
 
     class Meta:
         model = TbRoll
@@ -179,12 +183,20 @@ class AdminRoll(admin.ModelAdmin):
 
     # переопределяем метод сохранения модели
     def save_model(self, request, obj, form, change):
-        # Проверяем необходимость расстановки переносов
+        # Проверяем необходимость расстановки переносов и расставляем
         try:
-            if form.cleaned_data['hyphenation'] and form.cleaned_data['hyphenation_len'] > 6:
+            if form.cleaned_data['hyphenation'] and int(form.cleaned_data['hyphenation_len']) > 6:
                 # если нажата галочка "Переносы"
-                print(f'Расставляем переносы в словах длиннее: {int(form.cleaned_data["hyphenation_len"])}')
-                # obj.szRollText = hyphenation(obj.szRollText)
+                obj.szRollTitle = hyphenation_in_text(obj.szRollTitle, int(form.cleaned_data["hyphenation_len"]))
+                if form.cleaned_data['use_shy_for_hyphenation']:
+                    obj.szRollTitle = obj.szRollTitle.replace('­', '&shy;')
+                else:
+                    obj.szRollTitle = obj.szRollTitle.replace('&shy;', '­')
+                obj.szRollText = hyphenation_in_text(obj.szRollText, int(form.cleaned_data["hyphenation_len"]))
+                if form.cleaned_data['use_shy_for_hyphenation']:
+                    obj.szRollText = obj.szRollText.replace('­', '&shy;')
+                else:
+                    obj.szRollText = obj.szRollText.replace('&shy;', '­')
         except (KeyError, TypeError, ValueError):
             pass
 
@@ -197,7 +209,7 @@ class AdminRoll(admin.ModelAdmin):
                 emt_title.set_text(obj.szRollTitle)
                 obj.szRollTitle = emt_title.apply()
                 emt_roll_text = EMT.EMTypograph()
-                emt_roll_text.setup({'Text.paragraphs': 'on'})
+                emt_roll_text.setup({'Text.paragraphs': 'off'})
                 emt_roll_text.set_text(obj.szRollText)
                 emt_roll_text.set_tag_layout(layout=EMT.LAYOUT_STYLE)
                 obj.szRollText = emt_roll_text.apply()
@@ -242,7 +254,7 @@ class AdminRoll(admin.ModelAdmin):
             'fields': ('szRollTitle', 'kRollImgPreview', 'szRollText',),
         }),
         ('ТИПОГРАФ И ПЕРЕНОСЫ', {
-            'fields': ('typograf', ('hyphenation', 'hyphenation_len'),),
+            'fields': ('typograf', ('hyphenation', 'hyphenation_len', 'use_shy_for_hyphenation'),),
             'classes': ('collapse',),
         }),
     ]
