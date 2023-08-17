@@ -135,7 +135,7 @@ class TbRoll(models.Model):
         related_name='kRollTemplate',     # из-за конфликта "магии" Джанго иначе не работает из-за парных ForeignKey
         db_constraint=False,
         verbose_name="Шаблон ролла",
-        help_text="Шаблон отвечающий за отображение списка контента для категории.<br />"
+        help_text="Шаблон отвечающий за отображение списка      <br />контента для категории.<br />"
                   "<b style='color:red'>ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b>"
     )
     kDefaultContentTemplate = models.ForeignKey(
@@ -144,9 +144,12 @@ class TbRoll(models.Model):
         related_name='kContentTemplate',  # из-за конфликта "магии" Джанго иначе не работает из-за парных ForeignKey
         db_constraint=False,
         verbose_name="Шаблон контента (по умолчанию)",
-        help_text="Шаблон (по умолчанию) который будет использован для типовых единиц контента в этом ролле.<br />"
-                  "<b style='color:red'>ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b></br><small>Для любой единицы контента "
-                  "шаблон можно будет переназначить (например, если вы делаете страницы с уникальным дизайном).</small>"
+        help_text="Шаблон (по умолчанию) который будет использован<br />"
+                  "для типовых единиц контента в этом ролле.<br />"
+                  "<b style='color:red'>ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b></br>"
+                  "<small>Для любой единицы контента шаблон можно будет<br />"
+                  "переназначить (например, если вы делаете контент-страницы<br>"
+                  "с уникальным дизайном).</small>"
     )
     iRollItemInPage = models.PositiveSmallIntegerField(
         default=None, blank=True, null=True,
