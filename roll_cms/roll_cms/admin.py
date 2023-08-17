@@ -126,23 +126,28 @@ class RollAdminForm(forms.ModelForm):
     typograf = forms.BooleanField(label='Типограф', required=False, initial=False,
                                   help_text='Обработать через встроенный <a href="http://mdash.ru" target="_blank">'
                                             'Типограф Муравьёва 3.5</a><br />'
-                                            '<small><b>ХОРОШИЙ ТИПОГРАФ, ИНОГДА ДАЖЕ СЛИШКОМ</b><br />'
+                                            '<small><b>ХОРОШИЙ ТИПОГРАФ, ИНОГДА ДАЖЕ СЛИШКОМ. '
+                                            'ИНОГДА ГЛЮЧИТ! ПРОВЕРЯЙТЕ РЕЗУЛЬТАТ!!</b><br />'
                                             '&laquo;приклеивает&raquo; союзы и числительные, поддерживает неразрывные'
-                                            '<br />конструкции, замена тире, очень <b>навороченная расстановка кавы-'
-                                            '<br />чек</b> (с горизонтальным смещением, как при книжной типографике,'
-                                            '<br />идеально для цитат и прямой речи), расставляет абзацы (кроме<br />'
-                                            'заголовков) и т.п. <b>ИНОГДА ГЛЮЧИТ! ПРОВЕРЯЙТЕ РЕЗУЛЬТАТ!!</b></small>')
+                                            'конструкции, замена тире, очень <b>навороченная расстановка кавы&shy;'
+                                            'чек</b> (с горизонтальным смещением, как при книжной типографике,'
+                                            'идеально для цитат и прямой речи), расставляет абзацы (кроме '
+                                            'заголовков) и т.п.</small>')
     hyphenation = forms.BooleanField(label='Переносы', required=False, initial=False,
                                      help_text='Включить автоматические переносы слов по слогам<br />'
                                                '<small>Переносы расставляются только в словах длинее 12 символов.'
                                                ' <b>МОЖДЕТ НЕ РАБОТАТЬ ПОСЛЕ ТИПОГРАФА!</b></small>')
+    hyphenation_len = forms.IntegerField(label='Длина слова', required=False, initial=14,
+                                         help_text='Минимальная длина слова для переноса<br />'
+                                                   '<small>Переносы расставляются только в словах длиннее 14 символов.')
+
 
     class Meta:
         model = TbRoll
         fields = "__all__"
         widgets = {
-            'szRollText': forms.Textarea(attrs={'class': 'code_editor', 'style': 'font-family: "Courier New", monospace;'}),
-            # 'szRollTitle': forms.CharField(),
+            'szRollText': forms.Textarea(attrs={'class': 'code_editor'}),
+            'szRollTitle': forms.Textarea(attrs={'class': 'code_editor'}),
         }
 
 
@@ -150,18 +155,21 @@ class RollAdminForm(forms.ModelForm):
 class AdminRoll(admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
-        css = {'all': ('/static/codemirror-5.65.13/lib/codemirror.css',
-                       '/static/codemirror-5.65.13/addon/hint/show-hint.css',
-                       '/static/codemirror-5.65.13/addon/lint/lint.css',
-                       '/static/codemirror-5.65.13/theme/rubyblue.css', )}
-        js = ('/static/codemirror-5.65.13/lib/codemirror.js',
-              '/static/codemirror-5.65.13/addon/mode/multiplex.js',
-              '/static/codemirror-5.65.13/addon/mode/overlay.js',
-              '/static/codemirror-5.65.13/mode/xml/xml.js',
-              '/static/codemirror-5.65.13/mode/htmlmixed/htmlmixed.js',
-              '/static/js/codemirror/init_html.js',
-                '/static/codemirror-5.65.13/addon/hint/show-hint.js',
-              )
+        css = {
+            'all': ('/static/codemirror-5.65.13/lib/codemirror.css',
+                    '/static/codemirror-5.65.13/addon/hint/show-hint.css',
+                    '/static/codemirror-5.65.13/addon/lint/lint.css',
+                    '/static/codemirror-5.65.13/theme/rubyblue.css', )
+        }
+        js = (
+            '/static/codemirror-5.65.13/lib/codemirror.js',
+            '/static/codemirror-5.65.13/addon/mode/multiplex.js',
+            '/static/codemirror-5.65.13/addon/mode/overlay.js',
+            '/static/codemirror-5.65.13/mode/xml/xml.js',
+            '/static/codemirror-5.65.13/mode/htmlmixed/htmlmixed.js',
+            '/static/js/codemirror/init_html.js',
+            '/static/codemirror-5.65.13/addon/hint/show-hint.js',
+        )
 
     form = RollAdminForm
 
@@ -173,11 +181,11 @@ class AdminRoll(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         # Проверяем необходимость расстановки переносов
         try:
-            if form.cleaned_data['hyphenation']:
+            if form.cleaned_data['hyphenation'] and form.cleaned_data['hyphenation_len'] > 6:
                 # если нажата галочка "Переносы"
-                print('Переносим')
+                print(f'Расставляем переносы в словах длиннее: {int(form.cleaned_data["hyphenation_len"])}')
                 # obj.szRollText = hyphenation(obj.szRollText)
-        except KeyError:
+        except (KeyError, TypeError, ValueError):
             pass
 
         # Переопределяем включен ли типограф
@@ -224,7 +232,7 @@ class AdminRoll(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
         ('ШАБЛОНЫ', {
-            'fields': ('kRollTemplate', 'kDefaultContentTemplate', ),
+            'fields': (('kRollTemplate', 'kDefaultContentTemplate', ),),
         }),
         ('СОРТИРОВКА, ФИЛЬТРАЦИЯ и ПАГИНАЦИЯ', {
             'fields': ('szRollSortRule', 'szRollFilterRule', 'iRollItemInPage',),
@@ -234,7 +242,7 @@ class AdminRoll(admin.ModelAdmin):
             'fields': ('szRollTitle', 'kRollImgPreview', 'szRollText',),
         }),
         ('ТИПОГРАФ И ПЕРЕНОСЫ', {
-            'fields': (('typograf', 'hyphenation',),),
+            'fields': ('typograf', ('hyphenation', 'hyphenation_len'),),
             'classes': ('collapse',),
         }),
     ]
