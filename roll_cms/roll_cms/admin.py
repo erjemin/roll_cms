@@ -200,10 +200,14 @@ class AdminRoll(admin.ModelAdmin):
         except (KeyError, TypeError, ValueError):
             pass
 
-        # Переопределяем включен ли типограф
+        # Проверяем включен ли типограф и типографируем
         try:
             if form.cleaned_data['typograf']:
                 # если нажата галочка "Типограф", то типографируем
+                # https://habr.com/ru/articles/303608/
+                # https://github.com/f213/richtypo.py и https://pypi.org/project/richtypo/
+                # https://maks.live/articles/python/eto-tipograf/
+
                 emt_title = EMT.EMTypograph()
                 emt_title.setup({'Text.paragraphs': 'off'})
                 emt_title.set_text(obj.szRollTitle)
