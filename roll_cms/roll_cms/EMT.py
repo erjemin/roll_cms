@@ -201,9 +201,9 @@ class _EMT_Lib:
                        layout=LAYOUT_STYLE):  # TODO: attribute - list or dict ??
         html_tag = tag
 
-        if _typographSpecificTagId:
-            if not 'id' in attribute:
-                attribute['id'] = 'emt-2' + mt_rand(1000, 9999)  # TODO
+        # if _typographSpecificTagId:
+        #     if not ('id' in attribute):
+        #         attribute['id'] = 'emt-2' + mt_rand(1000, 9999)  # TODO
 
         classname = ""
         if len(attribute):
@@ -968,8 +968,8 @@ class EMT_Tret:
                 if style_inline:
                     attribute['__style'] = style_inline
 
-            if classname in self.class_names:
-                classname = class_names(classname)
+            # if classname in self.class_names:
+            #     classname = class_names(classname)
             classname = (self.class_layout_prefix if self.class_layout_prefix else "") + classname
             attribute['class'] = classname
         layout = LAYOUT_STYLE
