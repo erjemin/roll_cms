@@ -6,7 +6,7 @@ from django.db import models
 from django.forms import TextInput, Textarea
 # from ckeditor.widgets import CKEditorWidget
 # from codemirror import CodeMirrorTextarea
-from roll_cms.models import TbTemplate
+from roll_cms.models import TbTemplate      # , TbRoll
 # from web.add_function import safe_html_special_symbols
 from roll_cms.settings import *
 from roll_cms.add_function import safe_html_special_symbols, hyphenation_in_text
@@ -60,42 +60,41 @@ class AdminTemplate(admin.ModelAdmin):
         # настройка подключения codemirror
         css = {
             'all': (
-                # '/static/codemirror-5.65.13/doc/docs.css',
-                '/static/codemirror-5.65.13/lib/codemirror.css',
-                '/static/codemirror-5.65.13/addon/hint/show-hint.css',
-                '/static/codemirror-5.65.13/addon/lint/lint.css',
-                '/static/codemirror-5.65.13/theme/rubyblue.css',
+                '/static/codemirror-5.65.16/doc/docs.css',
+                '/static/codemirror-5.65.16/lib/codemirror.css',
+                '/static/codemirror-5.65.16/addon/hint/show-hint.css',
+                '/static/codemirror-5.65.16/addon/lint/lint.css',
+                '/static/codemirror-5.65.16/theme/rubyblue.css',
+                '/static/codemirror-5.65.16/theme/idea.css',
 
             )
         }
         # для редактора json
         # js = (
-        #     '/static/codemirror-5.65.13/lib/codemirror.js',
-        #     # '/static/codemirror/formatting.js',
-        #     '/static/codemirror-5.65.13/mode/javascript/javascript.js',
-        #     '/static/codemirror-5.65.13/addon/lint/lint.js',
-        #     '/static/codemirror-5.65.13/addon/lint/json-lint.js',
+        #     '/static/codemirror-5.65.16/lib/codemirror.js',
+        #     '/static/codemirror-5.65.16/mode/javascript/javascript.js',
+        #     '/static/codemirror-5.65.16/addon/lint/lint.js',
+        #     '/static/codemirror-5.65.16/addon/lint/json-lint.js',
         #     '/static/js/codemirror/init_json.js'
         # )
         js = (
-            '/static/codemirror-5.65.13/lib/codemirror.js',
-            # '/static/codemirror-5.65.13/addon/hint/show-hint.js',
-            # '/static/codemirror-5.65.13/addon/hint/xml-hint.js',
-            # '/static/codemirror-5.65.13/addon/hint/html-hint.js',
-            '/static/codemirror-5.65.13/addon/mode/multiplex.js',
-            '/static/codemirror-5.65.13/addon/mode/overlay.js',
-            '/static/codemirror-5.65.13/mode/xml/xml.js',
-            # '/static/codemirror-5.65.13/mode/javascript/javascript.js',
-            # '/static/codemirror-5.65.13/mode/css/css.js',
-            '/static/codemirror-5.65.13/mode/htmlmixed/htmlmixed.js',
-            '/static/codemirror-5.65.13/addon/lint/json-lint.js',
-            # '/static/codemirror-5.65.13/mode/jinja2/jinja2.js',
+            '/static/codemirror-5.65.16/lib/codemirror.js',
+            '/static/codemirror-5.65.16/addon/hint/show-hint.js',
+            # '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
+            # '/static/codemirror-5.65.16/addon/hint/html-hint.js',
+            '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+            '/static/codemirror-5.65.16/addon/mode/overlay.js',
+            '/static/codemirror-5.65.16/mode/xml/xml.js',
+            '/static/codemirror-5.65.16/mode/javascript/javascript.js',
+            '/static/codemirror-5.65.16/mode/css/css.js',
+            '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
+            '/static/codemirror-5.65.16/addon/lint/json-lint.js',
+            '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
 
-            # '/static/codemirror-5.65.13/addon/runmode/colorize.js',
-            # '/static/codemirror-5.65.13/addon/hint/html-hint.js',
-            # '/static/codemirror-5.65.13/addon/lint/lint.js',
-            # '/static/codemirror-5.65.13/addon/lint/html-lint.js',
-            # '/static/codemirror/formatting.js',
+            '/static/codemirror-5.65.16/addon/runmode/colorize.js',
+            '/static/codemirror-5.65.16/addon/hint/html-hint.js',
+            '/static/codemirror-5.65.16/addon/lint/lint.js',
+            '/static/codemirror-5.65.16/addon/lint/html-lint.js',
             '/static/js/codemirror/init_jinja2.js'
             # '/static/js/codemirror/init_html.js'
         )
@@ -153,26 +152,26 @@ class AdminTemplate(admin.ModelAdmin):
 #             'szRollText': forms.Textarea(attrs={'class': 'code_editor'}),
 #             'szRollTitle': forms.Textarea(attrs={'class': 'code_editor'}),
 #         }
-#
+
 
 # @admin.register(TbRoll)
 # class AdminRoll(admin.ModelAdmin):
 #     class Media:
 #         # настройка подключения codemirror
 #         css = {
-#             'all': ('/static/codemirror-5.65.13/lib/codemirror.css',
-#                     '/static/codemirror-5.65.13/addon/hint/show-hint.css',
-#                     '/static/codemirror-5.65.13/addon/lint/lint.css',
-#                     '/static/codemirror-5.65.13/theme/rubyblue.css', )
+#             'all': ('/static/codemirror-5.65.16/lib/codemirror.css',
+#                     '/static/codemirror-5.65.16/addon/hint/show-hint.css',
+#                     '/static/codemirror-5.65.16/addon/lint/lint.css',
+#                     '/static/codemirror-5.65.16/theme/rubyblue.css', )
 #         }
 #         js = (
-#             '/static/codemirror-5.65.13/lib/codemirror.js',
-#             '/static/codemirror-5.65.13/addon/mode/multiplex.js',
-#             '/static/codemirror-5.65.13/addon/mode/overlay.js',
-#             '/static/codemirror-5.65.13/mode/xml/xml.js',
-#             '/static/codemirror-5.65.13/mode/htmlmixed/htmlmixed.js',
+#             '/static/codemirror-5.65.16/lib/codemirror.js',
+#             '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+#             '/static/codemirror-5.65.16/addon/mode/overlay.js',
+#             '/static/codemirror-5.65.16/mode/xml/xml.js',
+#             '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
 #             '/static/js/codemirror/init_html.js',
-#             '/static/codemirror-5.65.13/addon/hint/show-hint.js',
+#             '/static/codemirror-5.65.16/addon/hint/show-hint.js',
 #         )
 #
 #     form = RollAdminForm
@@ -266,5 +265,5 @@ class AdminTemplate(admin.ModelAdmin):
 #     actions_on_top = False
 #     actions_on_bottom = True
 #
-#
-# # admin.site.register(TbTemplate, AdminTemplate)
+
+# admin.site.register(TbTemplate, AdminTemplate)
