@@ -102,7 +102,7 @@ TEMPLATES = [
         },
     },
 ]
-TEMPLATES_DIR = BASE_DIR / 'templates-jinja2'
+# TEMPLATES_DIR = BASE_DIR / 'templates-jinja2'
 
 WSGI_APPLICATION = 'roll_cms.wsgi.application'
 

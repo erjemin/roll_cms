@@ -3,6 +3,8 @@
 
 from roll_cms.settings import *
 from django.http import HttpRequest, HttpResponse
+from datetime import datetime
+from roll_cms.settings import *
 import regex
 
 
@@ -11,6 +13,21 @@ def check_cookies(request: HttpRequest) -> bool:
     if request.COOKIES.get('cookie_accept'):
         return False
     return True
+
+
+def log_p(msg: str = "", status: str = "NO_STATUS", add: str = "") -> str:
+    """
+    Возвращает строку лога (и печатает в stdout (print) в режиме DEBUG
+
+    :param msg: str     -- основное сообщение лога
+    :param status: str  -- статус: "OK", "ERROR"  и т.д.
+    :param add: str     -- дополнительная информация в лог
+    :return: str        -- лог-строка
+    """
+    log_string = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')} -- {status} -- {msg} -- {add}"
+    if DEBUG:
+        print(log_string)
+    return log_string
 
 
 def safe_html_special_symbols(s: str) -> str:

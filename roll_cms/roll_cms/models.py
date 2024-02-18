@@ -9,7 +9,9 @@ from django.utils.timezone import now
 from datetime import datetime
 from roll_cms.add_function import safe_html_special_symbols
 from roll_cms.settings import *
+from roll_cms.add_function import log_p
 import os
+import re
 import pytils
 # import datetime
 # import urllib3
@@ -32,14 +34,20 @@ class TbTemplate(models.Model):
         default=".jinja2", db_index=True, unique=True,  # индекс и уникальность
         null=True, blank=True,
         max_length=100,
-        verbose_name="Файл Шаблона",
-        help_text="Имя файла шаблона (расширение .jinja2 или .html)<br/>"
-                  "<b style='color:red'>ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b>",
+        verbose_name="FILENAME Шаблона",
+        help_text="Имя файла шаблона (расширение <b>jinja2</b> / <b>j2</b> / <b>jinja</b> (для шаблонов Jinja2) или "
+                  "<b>html</b> / <b>htm</b> (для шаблонов Django).<br/>"
+                  "Все остальные расширения считаются шаблонами Django и будет добавлено расширение <b>html</b>.<br/>"
+                  "<small style='color:red'>ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</small>",
     )
     szJinjaCode = models.TextField(
         default='', null=True, blank=True,
-        verbose_name='Шаблон',
-        help_text='Код шаблона (jinja2)',
+        verbose_name='Код шаблона',
+        help_text='Код шаблона (jinja2 или django).<br/>'
+                  '<small>Если оставить поле пустым при создании шаблона, то при его сохранении будет проверено'
+                  'наличие шаблона с таким FILENAME и, если он существует, то его содержимое будет записано'
+                  'в это поле.</small>',
+
     )
     szDescription = models.CharField(
         max_length=100,
@@ -62,17 +70,40 @@ class TbTemplate(models.Model):
 
     # переопределяем save() для записи шаблонов не только в ДБ, но и в файл
     def save(self, *args, **kwargs):
-        path_filename = TEMPLATES_DIR / self.szFileName
+        # path_filename = TEMPLATES_DIR / self.szFileName
+        if self.szFileName.lower().endswith(('.jinja2', '.j2', '.jinja', )):
+            # нужно будет создавать шаблон для шаблонизатора Jinja2
+            path_filename = TEMPLATES[0]['DIRS'][0] / self.szFileName
+        elif self.szFileName.lower().endswith(('.htm', '.html', )):
+            # нужно будет создавать шаблон для шаблонизатора Django
+            path_filename = TEMPLATES[1]['DIRS'][0] / self.szFileName
+        else:
+            # неизвестный формат шаблона
+            path_filename = TEMPLATES[1]['DIRS'][0] / f"{self.szFileName}.html"
+        if not self.pk and re.sub(r"\s", "", self.szJinjaCode) == "":
+            # Это не редактирование, а создание нового шаблона.
+            # Нужно проверить, вдруг файл шаблона с таким именем уже существует?
+            # Но если проверка покажет, что файл с таким именем существует, то надо будет в любом случае прочитать его
+            # и записать в поле szJinjaCode, а после занести в базу!!! Ну и зачем проверить тогда!! Сразу читаем, и
+            # если вывалится по ошибке -- то шаблона нет (или не хватает прав для его чтения).
+            try:
+                with open(path_filename, "r", encoding='utf-8') as template:
+                    self.szJinjaCode = template.read()
+                    super(TbTemplate, self).save(*args, **kwargs)
+                    return
+            except FileNotFoundError:
+                # это действительно новый шаблон, но с пустым содержанием
+                pass
         # проверим, если нет каталога в котором нужно сохранить шаблон, то создадим его
         if not os.path.exists(os.path.dirname(path_filename)):
+            # TODO: проверка на существование каталога у шаблона не сработает если каталог имеет большую вложенность >=2
             os.makedirs(os.path.dirname(path_filename))
         with open(path_filename, "w+", encoding='utf-8') as tmplt_file:
             tmplt_file.write(self.szJinjaCode.replace('\r\n', '\n'))
-        # # для продакшн нужно "дёрнуть" файл-touch_reload, чтобы uWSGI "щёлкнул"
-        # # (или отключить кеширование шаблонов в Django)
+        # для продакшн (not DEBUG) нужно "дёрнуть" файл-touch_reload, чтобы uWSGI "щёлкнул"
+        # (или отключить кеширование шаблонов в Django, что замедлит работу сайта)
         with open(TOUCH_RELOAD, 'a') as f:
-            f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')} --"
-                    f" \"{self.szFileName}\" RELOAD\n")
+            f.write(log_p(msg=f"TEMPLATE \"{self.szFileName}\" RELOAD", status="OK")+'\n')
         super(TbTemplate, self).save(*args, **kwargs)
 
     # переопределяем метод delete() (пока, не удаляется)
@@ -82,8 +113,8 @@ class TbTemplate(models.Model):
         # super(TbTemplate, self).delete(*args, **kwargs)
 
     class Meta:
-        verbose_name = '[…Шаблон] Ⓣ'
-        verbose_name_plural = '[…Шаблоны] Ⓣ'
+        verbose_name = '🖿 […Шаблон]'
+        verbose_name_plural = '🖿 […Шаблоны]'
 
 
 # class TbRoll(models.Model):

@@ -61,40 +61,40 @@ class AdminTemplate(admin.ModelAdmin):
         css = {
             'all': (
                 # '/static/codemirror-5.65.13/doc/docs.css',
-                '/static/codemirror-5.65.13/lib/codemirror.css',
-                '/static/codemirror-5.65.13/addon/hint/show-hint.css',
-                '/static/codemirror-5.65.13/addon/lint/lint.css',
-                '/static/codemirror-5.65.13/theme/rubyblue.css',
-
+                '/static/codemirror-5.65.16/lib/codemirror.css',
+                '/static/codemirror-5.65.16/addon/hint/show-hint.css',
+                '/static/codemirror-5.65.16/addon/lint/lint.css',
+                '/static/codemirror-5.65.16/theme/rubyblue.css',
+                '/static/codemirror-5.65.16/theme/idea.css',
             )
         }
         # для редактора json
         # js = (
-        #     '/static/codemirror-5.65.13/lib/codemirror.js',
+        #     '/static/codemirror-5.65.16/lib/codemirror.js',
         #     # '/static/codemirror/formatting.js',
-        #     '/static/codemirror-5.65.13/mode/javascript/javascript.js',
-        #     '/static/codemirror-5.65.13/addon/lint/lint.js',
-        #     '/static/codemirror-5.65.13/addon/lint/json-lint.js',
+        #     '/static/codemirror-5.65.16/mode/javascript/javascript.js',
+        #     '/static/codemirror-5.65.16/addon/lint/lint.js',
+        #     '/static/codemirror-5.65.16/addon/lint/json-lint.js',
         #     '/static/js/codemirror/init_json.js'
         # )
         js = (
-            '/static/codemirror-5.65.13/lib/codemirror.js',
-            # '/static/codemirror-5.65.13/addon/hint/show-hint.js',
-            # '/static/codemirror-5.65.13/addon/hint/xml-hint.js',
-            # '/static/codemirror-5.65.13/addon/hint/html-hint.js',
-            '/static/codemirror-5.65.13/addon/mode/multiplex.js',
-            '/static/codemirror-5.65.13/addon/mode/overlay.js',
-            '/static/codemirror-5.65.13/mode/xml/xml.js',
-            # '/static/codemirror-5.65.13/mode/javascript/javascript.js',
-            # '/static/codemirror-5.65.13/mode/css/css.js',
-            '/static/codemirror-5.65.13/mode/htmlmixed/htmlmixed.js',
-            '/static/codemirror-5.65.13/addon/lint/json-lint.js',
-            # '/static/codemirror-5.65.13/mode/jinja2/jinja2.js',
+            '/static/codemirror-5.65.16/lib/codemirror.js',
+            # '/static/codemirror-5.65.16/addon/hint/show-hint.js',
+            # '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
+            # '/static/codemirror-5.65.16/addon/hint/html-hint.js',
+            '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+            '/static/codemirror-5.65.16/addon/mode/overlay.js',
+            '/static/codemirror-5.65.16/mode/xml/xml.js',
+            # '/static/codemirror-5.65.16/mode/javascript/javascript.js',
+            # '/static/codemirror-5.65.16/mode/css/css.js',
+            '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
+            '/static/codemirror-5.65.16/addon/lint/json-lint.js',
+            '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
 
-            # '/static/codemirror-5.65.13/addon/runmode/colorize.js',
-            # '/static/codemirror-5.65.13/addon/hint/html-hint.js',
-            # '/static/codemirror-5.65.13/addon/lint/lint.js',
-            # '/static/codemirror-5.65.13/addon/lint/html-lint.js',
+            # '/static/codemirror-5.65.16/addon/runmode/colorize.js',
+            # '/static/codemirror-5.65.16/addon/hint/html-hint.js',
+            # '/static/codemirror-5.65.16/addon/lint/lint.js',
+            # '/static/codemirror-5.65.16/addon/lint/html-lint.js',
             # '/static/codemirror/formatting.js',
             '/static/js/codemirror/init_jinja2.js'
             # '/static/js/codemirror/init_html.js'
@@ -113,9 +113,16 @@ class AdminTemplate(admin.ModelAdmin):
         # Поле szJinjaCode у нас будет читаться из файла, а не из БД
         # Рецепт написал сам: https://qna.habr.com/q/1201124
         try:
-            with open(Path(TEMPLATES_DIR) / obj.szFileName, "r", encoding='utf-8') as template:
+            if obj.szFileName.lower().endswith(('.jinja2', '.j2', '.jinja',)):
+                # это шаблон Jinja2, будем читать его из каталога шаблонов Jinja2
+                path_filename = TEMPLATES[0]['DIRS'][0] / obj.szFileName
+            else:
+                # это какой-то другой шаблон, будем считать что это шаблон Django и  его из каталога шаблонов Django
+                path_filename = TEMPLATES[1]['DIRS'][0] / obj.szFileName
+            with open(path_filename, "r", encoding='utf-8') as template:
                 obj.szJinjaCode = template.read()
         except (AttributeError, FileNotFoundError, TypeError):
+            # это создание нового шаблона (объекта модели TbTemplate) и szJinjaCode еще не существует
             pass
         return ['szFileName', 'szDescription', 'szJinjaCode', 'szVar']
 
@@ -160,19 +167,19 @@ class AdminTemplate(admin.ModelAdmin):
 #     class Media:
 #         # настройка подключения codemirror
 #         css = {
-#             'all': ('/static/codemirror-5.65.13/lib/codemirror.css',
-#                     '/static/codemirror-5.65.13/addon/hint/show-hint.css',
-#                     '/static/codemirror-5.65.13/addon/lint/lint.css',
-#                     '/static/codemirror-5.65.13/theme/rubyblue.css', )
+#             'all': ('/static/codemirror-5.65.16/lib/codemirror.css',
+#                     '/static/codemirror-5.65.16/addon/hint/show-hint.css',
+#                     '/static/codemirror-5.65.16/addon/lint/lint.css',
+#                     '/static/codemirror-5.65.16/theme/rubyblue.css', )
 #         }
 #         js = (
-#             '/static/codemirror-5.65.13/lib/codemirror.js',
-#             '/static/codemirror-5.65.13/addon/mode/multiplex.js',
-#             '/static/codemirror-5.65.13/addon/mode/overlay.js',
-#             '/static/codemirror-5.65.13/mode/xml/xml.js',
-#             '/static/codemirror-5.65.13/mode/htmlmixed/htmlmixed.js',
+#             '/static/codemirror-5.65.16/lib/codemirror.js',
+#             '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+#             '/static/codemirror-5.65.16/addon/mode/overlay.js',
+#             '/static/codemirror-5.65.16/mode/xml/xml.js',
+#             '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
 #             '/static/js/codemirror/init_html.js',
-#             '/static/codemirror-5.65.13/addon/hint/show-hint.js',
+#             '/static/codemirror-5.65.16/addon/hint/show-hint.js',
 #         )
 #
 #     form = RollAdminForm
