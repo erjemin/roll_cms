@@ -38,7 +38,7 @@ class TemplateAdminForm(forms.ModelForm):
         model = TbTemplate
         fields = "__all__"
         widgets = {
-            'szJinjaCode': forms.Textarea(attrs={'class': 'code_editor'})
+            'szJinjaCode': forms.Textarea(attrs={'id': 'code_editor'})
         }
 
 
