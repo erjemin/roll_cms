@@ -80,23 +80,24 @@ class AdminTemplate(admin.ModelAdmin):
         js = (
             '/static/codemirror-5.65.16/lib/codemirror.js',
             '/static/codemirror-5.65.16/addon/hint/show-hint.js',
-            # '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
-            # '/static/codemirror-5.65.16/addon/hint/html-hint.js',
-            '/static/codemirror-5.65.16/addon/mode/multiplex.js',
             '/static/codemirror-5.65.16/addon/mode/overlay.js',
             '/static/codemirror-5.65.16/mode/xml/xml.js',
             '/static/codemirror-5.65.16/mode/javascript/javascript.js',
             '/static/codemirror-5.65.16/mode/css/css.js',
             '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
-            '/static/codemirror-5.65.16/addon/lint/json-lint.js',
             '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
 
+            # '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
+            '/static/codemirror-5.65.16/addon/mode/multiplex.js',
             '/static/codemirror-5.65.16/addon/runmode/colorize.js',
-            '/static/codemirror-5.65.16/addon/hint/html-hint.js',
+            '/static/codemirror-5.65.16/addon/lint/json-lint.js',
             '/static/codemirror-5.65.16/addon/lint/lint.js',
             '/static/codemirror-5.65.16/addon/lint/html-lint.js',
-            '/static/js/codemirror/init_jinja2.js'
-            # '/static/js/codemirror/init_html.js'
+
+            # '/static/codemirror-5.65.16/edit/matchbrackets.js',
+
+            '/static/js/codemirror/init_jinja2.js',
+            # '/static/js/codemirror/init_html.js',
         )
 
     form = TemplateAdminForm    # подключение формы TemplateAdminForm
