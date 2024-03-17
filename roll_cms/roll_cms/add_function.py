@@ -26,7 +26,11 @@ def log_p(msg: str = "", status: str = "NO_STATUS", add: str = "") -> str:
     """
     log_string = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')} -- {status} -- {msg} -- {add}"
     if DEBUG:
+        # во время разработки выводим логи в stdout
         print(log_string)
+    else:
+        # TODO: в продакшене c логами будем делать что-то другое, например вообще ничего не делать
+        pass
     return log_string
 
 
