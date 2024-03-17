@@ -6,13 +6,14 @@ from django.db import models
 from django.forms import TextInput, Textarea
 # from ckeditor.widgets import CKEditorWidget
 # from codemirror import CodeMirrorTextarea
-from roll_cms.models import TbTemplate
+from roll_cms.models import TbTemplate  # , TbRoll
 # from web.add_function import safe_html_special_symbols
 from roll_cms.settings import *
 from roll_cms.add_function import safe_html_special_symbols, hyphenation_in_text
 import roll_cms.EMT as EMT
 import pytils
 import random
+
 
 # from codemirror.widgets import CodeMirror
 
@@ -38,7 +39,7 @@ class TemplateAdminForm(forms.ModelForm):
         model = TbTemplate
         fields = "__all__"
         widgets = {
-            'szJinjaCode': forms.Textarea(attrs={'class': 'code_editor'})
+            'szJinjaCode': forms.Textarea(attrs={'id': 'code_editor'})
         }
 
 
@@ -60,18 +61,18 @@ class AdminTemplate(admin.ModelAdmin):
         # настройка подключения codemirror
         css = {
             'all': (
-                # '/static/codemirror-5.65.16/doc/docs.css',
+                '/static/codemirror-5.65.16/doc/docs.css',
                 '/static/codemirror-5.65.16/lib/codemirror.css',
                 '/static/codemirror-5.65.16/addon/hint/show-hint.css',
                 '/static/codemirror-5.65.16/addon/lint/lint.css',
                 '/static/codemirror-5.65.16/theme/rubyblue.css',
+                '/static/codemirror-5.65.16/theme/idea.css',
 
             )
         }
         # для редактора json
         # js = (
         #     '/static/codemirror-5.65.16/lib/codemirror.js',
-        #     # '/static/codemirror/formatting.js',
         #     '/static/codemirror-5.65.16/mode/javascript/javascript.js',
         #     '/static/codemirror-5.65.16/addon/lint/lint.js',
         #     '/static/codemirror-5.65.16/addon/lint/json-lint.js',
@@ -79,31 +80,31 @@ class AdminTemplate(admin.ModelAdmin):
         # )
         js = (
             '/static/codemirror-5.65.16/lib/codemirror.js',
-            # '/static/codemirror-5.65.16/addon/hint/show-hint.js',
-            # '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
-            # '/static/codemirror-5.65.16/addon/hint/html-hint.js',
-            '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+            '/static/codemirror-5.65.16/addon/hint/show-hint.js',
             '/static/codemirror-5.65.16/addon/mode/overlay.js',
             '/static/codemirror-5.65.16/mode/xml/xml.js',
-            # '/static/codemirror-5.65.16/mode/javascript/javascript.js',
-            # '/static/codemirror-5.65.16/mode/css/css.js',
+            '/static/codemirror-5.65.16/mode/javascript/javascript.js',
+            '/static/codemirror-5.65.16/mode/css/css.js',
             '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
-            '/static/codemirror-5.65.16/addon/lint/json-lint.js',
-            # '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
+            '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
 
-            # '/static/codemirror-5.65.16/addon/runmode/colorize.js',
-            # '/static/codemirror-5.65.16/addon/hint/html-hint.js',
-            # '/static/codemirror-5.65.16/addon/lint/lint.js',
-            # '/static/codemirror-5.65.16/addon/lint/html-lint.js',
-            # '/static/codemirror/formatting.js',
-            '/static/js/codemirror/init_jinja2.js'
-            # '/static/js/codemirror/init_html.js'
+            # '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
+            '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+            '/static/codemirror-5.65.16/addon/runmode/colorize.js',
+            '/static/codemirror-5.65.16/addon/lint/json-lint.js',
+            '/static/codemirror-5.65.16/addon/lint/lint.js',
+            '/static/codemirror-5.65.16/addon/lint/html-lint.js',
+
+            # '/static/codemirror-5.65.16/edit/matchbrackets.js',
+
+            '/static/js/codemirror/init_jinja2.js',
+            # '/static/js/codemirror/init_html.js',
         )
 
-    form = TemplateAdminForm    # подключение формы TemplateAdminForm
+    form = TemplateAdminForm  # подключение формы TemplateAdminForm
     search_fields = ['szFileName', 'szDescription', 'szJinjaCode']
     list_display = ('id', 'szFileName', 'szDescription', 'szVar')
-    list_display_links = ('id', 'szFileName', 'szDescription', )
+    list_display_links = ('id', 'szFileName', 'szDescription',)
     empty_value_display = '<b style=\'color:red;\'>—//—</b>'
     actions_on_top = False
     actions_on_bottom = True
