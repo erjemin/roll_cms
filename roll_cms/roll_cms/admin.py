@@ -63,8 +63,8 @@ class AdminTemplate(admin.ModelAdmin):
             'all': (
                 '/static/codemirror-5.65.16/doc/docs.css',
                 '/static/codemirror-5.65.16/lib/codemirror.css',
-                '/static/codemirror-5.65.16/addon/hint/show-hint.css',
-                '/static/codemirror-5.65.16/addon/lint/lint.css',
+                # '/static/codemirror-5.65.16/addon/hint/show-hint.css',
+                # '/static/codemirror-5.65.16/addon/lint/lint.css',
                 '/static/codemirror-5.65.16/theme/rubyblue.css',
                 '/static/codemirror-5.65.16/theme/idea.css',
 
@@ -89,7 +89,6 @@ class AdminTemplate(admin.ModelAdmin):
             '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
 
             # '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
-            '/static/codemirror-5.65.16/addon/mode/multiplex.js',
             '/static/codemirror-5.65.16/addon/runmode/colorize.js',
             '/static/codemirror-5.65.16/addon/lint/json-lint.js',
             '/static/codemirror-5.65.16/addon/lint/lint.js',
@@ -99,6 +98,8 @@ class AdminTemplate(admin.ModelAdmin):
 
             '/static/js/codemirror/init_jinja2.js',
             # '/static/js/codemirror/init_html.js',
+            '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+            '/static/codemirror-5.65.16/addon/mode/simple.js',
         )
 
     form = TemplateAdminForm  # подключение формы TemplateAdminForm
