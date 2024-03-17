@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # 'django_codemirror6.apps.DjangoCodemirror6Config',
     # 'easy_thumbnails.apps.EasyThumbnailsConfig',
     # 'filer.apps.FilerConfig',
     # 'mptt.apps.MpttConfig',
