@@ -52,11 +52,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 'django_codemirror6.apps.DjangoCodemirror6Config',
-    # 'easy_thumbnails.apps.EasyThumbnailsConfig',
-    # 'filer.apps.FilerConfig',
+    'easy_thumbnails.apps.EasyThumbnailsConfig',
+    'filer.apps.FilerConfig',
     # 'mptt.apps.MpttConfig',
-
     'roll_cms.apps.RollCmsConfig',
 ]
 
@@ -116,15 +114,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
-# Internationalization  (Интернационализация)
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-LANGUAGE_CODE = 'ru-RU'
-TIME_ZONE = 'Europe/Moscow'
-USE_I18N = True
-USE_TZ = True
-FIRST_DAY_OF_WEEK = 1                           # первый день недели: понедельник
-SHORT_DATE_FORMAT = '%Y-%m-%d'
-SHORT_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 # Security
 # Останавливаем в http-заголовок 'X-Content-Type-Options: nosniff' для защиты от снифинга
@@ -151,7 +140,7 @@ MEDIA_URL = 'media/'
 # различные компьютеры (отличаются через hostname) и соответвенно для каждого будут различные параметры
 # подключения к базе данных, различные каталоги расположения статических- и медиа-файлов. и т.п.
 MEDIA_ROOT = MY_MEDIA_ROOT
-SITEMAP_ROOT = MY_SITEMAP_ROOT
+SITE_ROOT = MY_SITE_ROOT
 STATICFILES_DIRS = [
     MY_STATIC_ROOT
 ]
@@ -179,7 +168,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # https://docs.djangoproject.com/en/4.2/topics/cache/
 
 
-# # ------------------- Настройки для django-filer -------------------
+# ------------------- НАСТРОЙКИ ДЛЯ THUMBNAIL -------------------
 # # Настройки миниатюр THUMBNAIL (батарейка по созданию превьюшек)
 # # Документацию см: https://easy-thumbnails.readthedocs.io/en/latest/ref/settings/
 # if DEBUG:
@@ -191,13 +180,78 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # THUMBNAIL_NAMER = 'easy_thumbnails.namers.default'                  # Устанавливает класс, для генерации имен файлов.
 # THUMBNAIL_SOURCE_GENERATORS = ('easy_thumbnails.source_generators.pil_image', )     # Устанавливает классы, для
 #                                                                                     # генерации исходных изображений.
-# THUMBNAIL_PROCESSORS = (
-#     'easy_thumbnails.processors.colorspace',
-#     'easy_thumbnails.processors.autocrop',
-#     'easy_thumbnails.processors.scale_and_crop',
-#     'easy_thumbnails.processors.filters',
-#     'easy_thumbnails.processors.background',
-# )
+THUMBNAIL_PROCESSORS = (
+    'easy_thumbnails.processors.colorspace',
+    'easy_thumbnails.processors.autocrop',
+    'easy_thumbnails.processors.scale_and_crop',
+    'filer.thumbnail_processors.scale_and_crop_with_subject_location',
+    'easy_thumbnails.processors.filters',
+)
+
+# ------------------- НАСТРОЙКИ ДЛЯ DJANGO-FILER -------------------
+FILER_CANONICAL_URL = '_file_/'
+# Настройки серверов хранения, используемых для хранения файлов django-filer
+FILER_STORAGES = {
+    'public': {
+        'main': {
+            'ENGINE': 'filer.storage.PublicFileSystemStorage',
+            'OPTIONS': {
+                'location': MY_FILER_PUBLIC_STORAGE_LOCATION,
+                'base_url': MY_FILER_PUBLIC_STORAGE_BASE_URL,
+            },
+            'UPLOAD_TO': 'filer.utils.generate_filename.randomized',
+            'UPLOAD_TO_PREFIX': MY_FILER_PUBLIC_STORAGE_UPLOAD_TO_PREFIX,
+        },
+        'thumbnails': {
+            'ENGINE': 'filer.storage.PublicFileSystemStorage',
+            'OPTIONS': {
+                'location': MY_FILER_PUBLIC_THUMBNAILS_LOCATION,
+                'base_url': MY_FILER_PUBLIC_THUMBNAILS_BASE_URL,
+            },
+        },
+    },
+    # Если нужны приватные пользовательские файлы, то нужно сделать аналогичное описание для 'private'
+}
+# Для продакшена (боевого сервера) нужно будет добавить дополнительные переменные и рекомендованные
+# настройки Nginx для ускорения загрузки файлов:
+# https://django-filer.readthedocs.io/en/latest/secure_downloads.html#nginxxaccelredirectserver
+# if not DEBUG:
+#     FILER_SERVERS = {
+#         'private': {'main': {
+#                 'ENGINE': 'filer.server.backends.nginx.NginxXAccelRedirectServer',
+#                 'OPTIONS': {
+#                     'location': '/path/to/smedia/filer',
+#                     'nginx_location': '/nginx_filer_private',
+#                 },
+#             },
+#             'thumbnails': {
+#                 'ENGINE': 'filer.server.backends.nginx.NginxXAccelRedirectServer',
+#                 'OPTIONS': {
+#                     'location': '/path/to/smedia/filer_thumbnails',
+#                     'nginx_location': '/nginx_filer_private_thumbnails',
+#                 },
+#             },
+#         },
+#     }
+
+# Для политики безопасности определяем список разрешенных MIME-типов для загрузки через django-filer
+FILER_MIME_TYPE_WHITELIST = [
+    "image/*",  # Любые картинки: image/gif, image/jpeg, image/pjpeg, image/png, image/svg+xml, image/tiff,
+                #                 image/vnd.microsoft.icon, image/vnd.wap.wbmp, image/webp ...
+    "video/*",  # Любые видео:    video/mpeg, video/mp4), video/ogg, video/quicktime, video/webm, video/x-ms-wmv,
+                #                 video/x-flv, video/x-msvideo (.avi), video/3gpp, video/3gpp2 ...
+]
+
+# Экспериментальная очистка SVG через django-filer и easy-thumbnail
+# Эта экспериментальная функция пропускает загруженное изображение SVG через easy-thumbnail и перезаписывается
+# с удалением неграфических тегов или атрибутов. Любой JavaScript в файле SVG будет потерян.
+# ПОЛУЧЕННЫЙ ФАЙЛ НЕ ИДЕНТИЧЕН ЗАГРУЖЕННОМУ ФАЙЛУ.
+FILER_REMOVE_FILE_VALIDATORS = ["image/svg+xml"]
+
+FILER_ADD_FILE_VALIDATORS = {
+    "image/svg+xml": ["filer.validation.sanitize_svg"],
+}
+
 # # Определяем псевдонимы миниатюр THUMBNAIL
 # #   size -- обязательный параметр, определяет границы, в которые должно вписываться сгенерированное изображение.
 # #   quality -- число N — качество JPEG, целое число от 1 до 100. По умолчанию 85.
