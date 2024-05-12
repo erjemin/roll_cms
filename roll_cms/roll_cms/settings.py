@@ -189,8 +189,9 @@ THUMBNAIL_PROCESSORS = (
 )
 
 # ------------------- НАСТРОЙКИ ДЛЯ DJANGO-FILER -------------------
+# Определяет элемент пути, общий для всех канонических URL-адресов файлов django-filer
 FILER_CANONICAL_URL = '_file_/'
-# Настройки серверов хранения, используемых для хранения файлов django-filer
+# Настройки мест хранения, используемых для файлов django-filer
 FILER_STORAGES = {
     'public': {
         'main': {
@@ -211,6 +212,39 @@ FILER_STORAGES = {
         },
     },
     # Если нужны приватные пользовательские файлы, то нужно сделать аналогичное описание для 'private'
+}
+# Количество элементов (папок, файлов), которые должны отображаться на странице в администраторе (по умолчанию 100)
+FILER_PAGINATE_BY = 50
+# Помечает красным вокруг изображений, который использовались для обрезки с учетом местоположения объекта
+FILER_SUBJECT_LOCATION_IMAGE_DEBUG = True if DEBUG else False
+# Ограничение файлов для загрузки одним событием перетаскивания (чтобы избежать случайных загрузок)
+FILER_UPLOADER_MAX_FILES = 15
+# Количество одновременных AJAX-загрузок (по умолчанию 3). Если база данных использует SQLite, по умолчанию будет 1.
+# Это позволяет избежать ошибок SQLite при одновременной загрузке нескольких файлов в базу данных
+FILER_UPLOADER_CONNECTIONS = 2
+# Максимальный размер файла (в МБ, по умолчанию None)
+FILER_UPLOADER_MAX_FILE_SIZE = 4
+# Ограничивает максимальный размер изображения в пикселях. Оно также будет меньше или равно значению MAX_IMAGE_PIXELS,
+# которое допустимо для PIL Pillow. По умолчанию FILER_MAX_IMAGE_PIXELS == MAX_IMAGE_PIXELS. Но если оно установлено,
+# оно всегда должно быть ниже предела MAX_IMAGE_PIXELS, установленного Pillow. Это полезная настройка для
+# предотвращения DOS-атак с декомпрессионной бомбой
+FILER_MAX_IMAGE_PIXELS = 3686400    # полноэкранное изображение 2K (2560*1440)
+MAX_IMAGE_PIXELS = 6134400          # полноэкранное изображение 4K (3840*2160)
+# Для политики безопасности определяем список разрешенных MIME-типов для загрузки через django-filer
+FILER_MIME_TYPE_WHITELIST = [
+    "image/*",  # Любые картинки: image/gif, image/jpeg, image/pjpeg, image/png, image/svg+xml, image/tiff,
+                #                 image/vnd.microsoft.icon, image/vnd.wap.wbmp, image/webp ...
+    "video/*",  # Любые видео:    video/mpeg, video/mp4), video/ogg, video/quicktime, video/webm, video/x-ms-wmv,
+                #                 video/x-flv, video/x-msvideo (.avi), video/3gpp, video/3gpp2 ...
+]
+# Список валидаторов файлов по умолчанию, которые следует игнорировать
+FILER_REMOVE_FILE_VALIDATORS = ["image/svg+xml"]
+# Словарь, который добавляет валидаторы загрузки файлов для определенных типов mime
+# ПОДКЛЮЧЕНА **экспериментальная** очистка SVG через django-filer и easy-thumbnail. Пропускает загруженный SVG
+# через easy-thumbnail и перезаписывает с удалением неграфических тегов или атрибутов (удалит любой JavaScrip в SVG).
+# ПОЛУЧЕННЫЙ ФАЙЛ НЕ ИДЕНТИЧЕН ЗАГРУЖЕННОМУ ФАЙЛУ!
+FILER_ADD_FILE_VALIDATORS = {
+    "image/svg+xml": ["filer.validation.sanitize_svg"],
 }
 # Для продакшена (боевого сервера) нужно будет добавить дополнительные переменные и рекомендованные
 # настройки Nginx для ускорения загрузки файлов:
@@ -234,23 +268,7 @@ FILER_STORAGES = {
 #         },
 #     }
 
-# Для политики безопасности определяем список разрешенных MIME-типов для загрузки через django-filer
-FILER_MIME_TYPE_WHITELIST = [
-    "image/*",  # Любые картинки: image/gif, image/jpeg, image/pjpeg, image/png, image/svg+xml, image/tiff,
-                #                 image/vnd.microsoft.icon, image/vnd.wap.wbmp, image/webp ...
-    "video/*",  # Любые видео:    video/mpeg, video/mp4), video/ogg, video/quicktime, video/webm, video/x-ms-wmv,
-                #                 video/x-flv, video/x-msvideo (.avi), video/3gpp, video/3gpp2 ...
-]
 
-# Экспериментальная очистка SVG через django-filer и easy-thumbnail
-# Эта экспериментальная функция пропускает загруженное изображение SVG через easy-thumbnail и перезаписывается
-# с удалением неграфических тегов или атрибутов. Любой JavaScript в файле SVG будет потерян.
-# ПОЛУЧЕННЫЙ ФАЙЛ НЕ ИДЕНТИЧЕН ЗАГРУЖЕННОМУ ФАЙЛУ.
-FILER_REMOVE_FILE_VALIDATORS = ["image/svg+xml"]
-
-FILER_ADD_FILE_VALIDATORS = {
-    "image/svg+xml": ["filer.validation.sanitize_svg"],
-}
 
 # # Определяем псевдонимы миниатюр THUMBNAIL
 # #   size -- обязательный параметр, определяет границы, в которые должно вписываться сгенерированное изображение.
