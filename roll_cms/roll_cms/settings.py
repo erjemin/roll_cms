@@ -53,8 +53,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'easy_thumbnails.apps.EasyThumbnailsConfig',
-    'filer.apps.FilerConfig',
     # 'mptt.apps.MpttConfig',
+    'roll_cms.apps_filer.MyFilerConfig',
     'roll_cms.apps.RollCmsConfig',
 ]
 
@@ -199,6 +199,7 @@ THUMBNAIL_PROCESSORS = (
 )
 
 # ------------------- НАСТРОЙКИ ДЛЯ DJANGO-FILER -------------------
+#
 # См. документацию: https://django-filer.readthedocs.io/en/latest/index.html
 # Определяет элемент пути, общий для всех канонических URL-адресов файлов django-filer
 FILER_CANONICAL_URL = '_file_/'
