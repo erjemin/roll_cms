@@ -10,7 +10,7 @@
     // Включаем подсветку jinja-тегов {{...}} внутри html
     CodeMirror.defineMode("html+jinja2{}", function (config) {
       return CodeMirror.multiplexingMode(
-        CodeMirror.getMode(config, "text/html"), {
+        CodeMirror.getMode(config, "django"), {  // text/html
           open: "{{", close: "}}",
           mode: CodeMirror.getMode(config, "jinja2"),
           parseDelimiters: true,
@@ -40,8 +40,8 @@
         );
     });
 
-    // инициализация codemirror
-    $('#code_editor').each(function (idx, el) {
+    // инициализация codemirror для Jinja+Htm;
+    $('.code_editor').each(function (idx, el) {
       var editor = CodeMirror.fromTextArea(el, {
         lineNumbers: true,
         tabSize: 2,

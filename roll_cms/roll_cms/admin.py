@@ -13,6 +13,7 @@ from roll_cms.add_function import safe_html_special_symbols, hyphenation_in_text
 import roll_cms.EMT as EMT
 import pytils
 import random
+import re
 
 
 # from codemirror.widgets import CodeMirror
@@ -31,7 +32,7 @@ class TemplateAdminForm(forms.ModelForm):
         model = TbTemplate
         fields = "__all__"
         widgets = {
-            'szJinjaCode': forms.Textarea(attrs={'id': 'code_editor'})
+            'szJinjaCode': forms.Textarea(attrs={'class': 'code_editor'})
         }
 
 
@@ -42,7 +43,7 @@ class JsonAdminForm(forms.ModelForm):
         model = TbTemplate
         fields = "__all__"
         widgets = {
-            'data': forms.Textarea(attrs={'class': 'json-editor'}),
+            'json-data': forms.Textarea(attrs={'class': 'json-editor'}),
         }
 
 
@@ -51,14 +52,15 @@ class JsonAdminForm(forms.ModelForm):
 class AdminTemplate(admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
+        # подключаемые CSS
         css = {
             'all': (
                 '/static/codemirror-5.65.16/doc/docs.css',
                 '/static/codemirror-5.65.16/lib/codemirror.css',
-                # '/static/codemirror-5.65.16/addon/hint/show-hint.css',
-                # '/static/codemirror-5.65.16/addon/lint/lint.css',
-                '/static/codemirror-5.65.16/theme/rubyblue.css',
-                '/static/codemirror-5.65.16/theme/idea.css',
+                '/static/codemirror-5.65.16/addon/hint/show-hint.css',
+                '/static/codemirror-5.65.16/addon/lint/lint.css',
+                '/static/codemirror-5.65.16/theme/rubyblue.css',    # для темной темы
+                '/static/codemirror-5.65.16/theme/idea.css',        # для светлой темы
 
             )
         }
@@ -68,8 +70,9 @@ class AdminTemplate(admin.ModelAdmin):
         #     '/static/codemirror-5.65.16/mode/javascript/javascript.js',
         #     '/static/codemirror-5.65.16/addon/lint/lint.js',
         #     '/static/codemirror-5.65.16/addon/lint/json-lint.js',
-        #     '/static/js/codemirror/init_json.js'
+        #     '/static/js/codemirror/init_roll_adm.js'
         # )
+        # Подключаемые JavaScript
         js = (
             '/static/codemirror-5.65.16/lib/codemirror.js',
             '/static/codemirror-5.65.16/addon/hint/show-hint.js',
@@ -79,19 +82,19 @@ class AdminTemplate(admin.ModelAdmin):
             '/static/codemirror-5.65.16/mode/css/css.js',
             '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
             '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
+            '/static/codemirror-5.65.16/mode/django/django.js',
 
-            # '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
+            '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
             '/static/codemirror-5.65.16/addon/runmode/colorize.js',
             '/static/codemirror-5.65.16/addon/lint/json-lint.js',
             '/static/codemirror-5.65.16/addon/lint/lint.js',
             '/static/codemirror-5.65.16/addon/lint/html-lint.js',
 
             # '/static/codemirror-5.65.16/edit/matchbrackets.js',
-
-            '/static/js/codemirror/init_jinja2.js',
             # '/static/js/codemirror/init_html.js',
             '/static/codemirror-5.65.16/addon/mode/multiplex.js',
             '/static/codemirror-5.65.16/addon/mode/simple.js',
+            '/static/js/codemirror/init_template_adm.js',
         )
 
     form = TemplateAdminForm  # подключение формы TemplateAdminForm
@@ -147,40 +150,64 @@ class RollAdminForm(forms.ModelForm):
                                                  help_text='Использовать &amp;shy;<br />'
                                                            '<small>Иначе через юникод-символ</small>')
 
+    def clean(self):
+        # Переопределим валидацию формы TbRoll-адмики и переопределим значения некоторых полей (если необходимо)
+        cleaned_data = super().clean()
+        if self.instance.pk is None or cleaned_data['szRollOldSlugs'] is None:
+            # если это новая запись, то старых URL-слагов нет
+            cleaned_data['szRollOldSlugs'] = []
+        if cleaned_data['szRollSlug'] is None or re.sub(r"\s+", "", cleaned_data['szRollSlug']) == "":
+            # если в форме не указали URL-слаг, то создадим его из названия
+            created_slug = pytils.translit.slugify(cleaned_data['szRollName']).lower()
+            # проверим уникальность созданного URL-слага
+            while TbRoll.objects.filter(szRollSlug=created_slug).count() != 0:
+                f"{created_slug[0:-3]}-{int(random.uniform(0, 255)):x}"
+            cleaned_data['szRollSlug'] = created_slug
+        if self.instance.pk is not None and cleaned_data['szRollSlug'] != TbRoll.objects.get(id=self.instance.pk).szRollSlug:
+            # если это редактирование существующей записи и URL-слаг изменился, то добавим его в старые URL-слаги
+            if TbRoll.objects.get(id=self.instance.pk).szRollSlug not in cleaned_data['szRollOldSlugs']:
+                cleaned_data['szRollOldSlugs'].append(TbRoll.objects.get(id=self.instance.pk).szRollSlug)
+
     class Meta:
         model = TbRoll
         fields = "__all__"
         widgets = {
+            'szRollOldSlugs': forms.Textarea(attrs={'class': 'json_editor'}),
             'szRollText': forms.Textarea(attrs={'class': 'code_editor'}),
             'szRollTitle': forms.Textarea(attrs={'class': 'code_editor'}),
         }
 
+
 @admin.register(TbRoll)
 class AdminRoll(admin.ModelAdmin):
-#     class Media:
-#         # настройка подключения codemirror
-#         css = {
-#             'all': ('/static/codemirror-5.65.16/lib/codemirror.css',
-#                     '/static/codemirror-5.65.16/addon/hint/show-hint.css',
-#                     '/static/codemirror-5.65.16/addon/lint/lint.css',
-#                     '/static/codemirror-5.65.16/theme/rubyblue.css', )
-#         }
-#         js = (
-#             '/static/codemirror-5.65.16/lib/codemirror.js',
-#             '/static/codemirror-5.65.16/addon/mode/multiplex.js',
-#             '/static/codemirror-5.65.16/addon/mode/overlay.js',
-#             '/static/codemirror-5.65.16/mode/xml/xml.js',
-#             '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
-#             '/static/js/codemirror/init_html.js',
-#             '/static/codemirror-5.65.16/addon/hint/show-hint.js',
-#         )
-#
+    class Media:
+        # настройка подключения codemirror
+        css = {'all': ('/static/codemirror-5.65.16/lib/codemirror.css',
+                       '/static/codemirror-5.65.16/addon/hint/show-hint.css',
+                       '/static/codemirror-5.65.16/addon/lint/lint.css',
+                       '/static/codemirror-5.65.16/theme/rubyblue.css',  # для темной темы
+                       '/static/codemirror-5.65.16/theme/idea.css',  # для светлой темы
+                      )
+               }
+        js = (
+            '/static/codemirror-5.65.16/lib/codemirror.js',
+            # '/static/codemirror/formatting.js',
+            '/static/codemirror-5.65.16/mode/javascript/javascript.js',
+            # '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+            # '/static/codemirror-5.65.16/addon/mode/overlay.js',
+            # '/static/codemirror-5.65.16/mode/xml/xml.js',
+            # '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
+            # '/static/codemirror-5.65.16/addon/hint/show-hint.js',
+            '/static/codemirror-5.65.16/addon/lint/json-lint.js',
+            '/static/js/codemirror/init_roll_adm.js',
+        )
+
     form = RollAdminForm
-#
+    #
     # Переопределяем способ получения полей из модели в форму админки (чтобы получить фиктивные поля).
     def get_form(self, request, obj=None, **kwargs):
         return super().get_form(request, obj, **kwargs)
-#
+    #
     # переопределяем метод сохранения модели
     def save_model(self, request, obj, form, change):
         # Проверяем необходимость расстановки переносов и расставляем
@@ -236,15 +263,13 @@ class AdminRoll(admin.ModelAdmin):
     list_display_links = ('id', 'szRollName')
     search_fields = ['szRollName', 'szRollTitle', 'szRollText']
     list_editable = ('bRollPublish',)
-
-
     # Настройка страницы редактирования
     fieldsets = [
         (None, {
             'fields': ('bRollPublish', 'szRollName', ),
         }),
         ('SLUG & REDIRECT', {
-            'fields': ('szRollSlug', 'szRollRedirectTo', ),
+            'fields': (('szRollSlug', 'szRollRedirectTo', ), 'szRollOldSlugs', ),
             'classes': ('collapse',),
         }),
         ('ШАБЛОНЫ', {

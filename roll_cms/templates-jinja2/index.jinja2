@@ -7,7 +7,7 @@
 <body>{% block BODY %}{% block Top_CSS1 %}{% endblock %}{% block Top_CSS2 %}{% endblock %}{% block Top_CSS3 %}{% endblock %}
 {#  {% include "blocks/header_nav.jinja2" %}#}
 {% block CONTENT %}{% endblock CONTENT %}
-{#  {% include "blocks/footer.jinja2" %} #}{% if COOKIES %}
+{#  {% include "blocks/footer.jinja2" %} #}{% if not COOKIES %}
   {% include "blocks/accept-cookies.jinja2" %}{% endif %}
 {% block Top_JS1 %}{% endblock Top_JS1 %}{% block Top_JS2 %}{% endblock Top_JS2 %}{% block Top_JS3 %}{% endblock Top_JS3 %}{#
   <!-- script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
@@ -19,13 +19,17 @@
   
   <small class=""></small>
 
-[
+  <script>[
 
   {"SET1": "VALUE_A", },
   {"SET2": "VALUE_BB", },
 ]
-[]
-<p style="font-family: var(--font-family-monospace)">?---?</p>
+  []
+  
+  </script>
+  <p style="font-family: var(--font-family-monospace)">?---?</p>
+  <div style="background:red;">RED--</div>
+
 
 {% endblock BODY %}</body>
 </html>
