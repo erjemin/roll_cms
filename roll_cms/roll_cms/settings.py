@@ -246,27 +246,40 @@ FILER_REMOVE_FILE_VALIDATORS = ["image/svg+xml"]
 FILER_ADD_FILE_VALIDATORS = {
     "image/svg+xml": ["filer.validation.sanitize_svg"],
 }
-# Для продакшена (боевого сервера) нужно будет добавить дополнительные переменные и рекомендованные
-# настройки Nginx для ускорения загрузки файлов:
+# Если FILER_DUMP_PAYLOAD установить в True, то все файлы django-filer будут сохранены (продублированы) в виде
+# бинарных объектов BASE64 базы данных. Когда False -- в базе хранятся только метаданные файлов.
+FILER_DUMP_PAYLOAD = False
+# Для продакшена (боевого сервера) под nginx нужно будет добавить дополнительные переменные и настройки Nginx
+# для ускорения загрузки файлов. См.:
 # https://django-filer.readthedocs.io/en/latest/secure_downloads.html#nginxxaccelredirectserver
-# if not DEBUG:
-#     FILER_SERVERS = {
-#         'private': {'main': {
-#                 'ENGINE': 'filer.server.backends.nginx.NginxXAccelRedirectServer',
-#                 'OPTIONS': {
-#                     'location': '/path/to/smedia/filer',
-#                     'nginx_location': '/nginx_filer_private',
-#                 },
-#             },
-#             'thumbnails': {
-#                 'ENGINE': 'filer.server.backends.nginx.NginxXAccelRedirectServer',
-#                 'OPTIONS': {
-#                     'location': '/path/to/smedia/filer_thumbnails',
-#                     'nginx_location': '/nginx_filer_private_thumbnails',
-#                 },
-#             },
-#         },
-#     }
+# в конфиге nginx нужно будет сделать приблизительно такие строки:
+#             location /media/_file_/ {
+#                 internal;
+#                 alias /path/to/media/filer/;
+#             }
+#             location /media/_file_s_/ {
+#                 internal;
+#                 alias /path/to/media/filer_x/;
+if not DEBUG:
+    FILER_SERVERS = {
+        'public': {'main': {
+                'ENGINE': 'filer.server.backends.nginx.NginxXAccelRedirectServer',
+                'OPTIONS': {
+                    'location': MY_FILER_PUBLIC_STORAGE_LOCATION,
+                    'nginx_location': MY_FILER_PUBLIC_STORAGE_BASE_URL[:-1],
+                },
+            },
+            'thumbnails': {
+                'ENGINE': 'filer.server.backends.nginx.NginxXAccelRedirectServer',
+                'OPTIONS': {
+                    'location': MY_FILER_PUBLIC_THUMBNAILS_LOCATION,
+                    'nginx_location': MY_FILER_PUBLIC_THUMBNAILS_BASE_URL[:-1],
+                },
+            },
+        },
+        # Если будут и приватные пользовательские файлы, то НЕОБХОДИМО сделать аналогичное описание для 'private'.
+        # Это, кроме ускорения, обеспечит и безопасность, т.к. пути к приватным файлам будут скрыты от прямого доступа
+    }
 
 
 
