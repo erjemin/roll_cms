@@ -114,6 +114,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
+# Internationalization
+# https://docs.djangoproject.com/en/4.0/topics/i18n/
+LANGUAGE_CODE = 'ru-RU'
+TIME_ZONE = 'Europe/Moscow'
+USE_I18N = True
+USE_TZ = True
+USE_L10N = False                 # локальный формат дат имеет приоритет
+FIRST_DAY_OF_WEEK = 1           # 1'st day week -- monday
+SHORT_DATE_FORMAT = '%Y-%m-%d'
+SHORT_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 # Security
 # Останавливаем в http-заголовок 'X-Content-Type-Options: nosniff' для защиты от снифинга
