@@ -189,6 +189,7 @@ THUMBNAIL_PROCESSORS = (
 )
 
 # ------------------- НАСТРОЙКИ ДЛЯ DJANGO-FILER -------------------
+# См. документацию: https://django-filer.readthedocs.io/en/latest/index.html
 # Определяет элемент пути, общий для всех канонических URL-адресов файлов django-filer
 FILER_CANONICAL_URL = '_file_/'
 # Настройки мест хранения, используемых для файлов django-filer
@@ -260,6 +261,7 @@ FILER_DUMP_PAYLOAD = False
 #             location /media/_file_s_/ {
 #                 internal;
 #                 alias /path/to/media/filer_x/;
+# Так же см. документацию ngin: http://wiki.nginx.org/XSendfile
 if not DEBUG:
     FILER_SERVERS = {
         'public': {'main': {
