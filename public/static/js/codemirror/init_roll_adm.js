@@ -8,41 +8,49 @@
     // Включаем "темную" или "светлую" тему в зависимости от настроек браузера пользователя
     var theme_is = 'idea'; // светлая тема
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) theme_is = 'rubyblue';  // тёмная тема
-    // инициализация codemirror для json
-    // $('#id_szRollOldSlugs').each(function (idx, el) {
-    //   var editor = CodeMirror.fromTextArea(el, {
-    //     lineNumbers: true,
-    //     mode: 'html',
-    //     gutters: ['CodeMirror-lint-markers'],
-    //     theme: theme_is,
-    //     lint: true
-    //   });
-    //   CodeMirror.commands["selectAll"](editor);
-    //   var range = getSelectedRange();
-    //   editor.autoFormatRange(range.from, range.to);
-    //
-    //   range = getSelectedRange();
-    //   editor.commentRange(false, range.from, range.to);
-    // });
 
-    $('.json_editor').each(function (idx, el) {
+    // инициализация codemirror для Заголовка (title) в формате html-кода
+    $('.code_editor_title').each(function (idx, el) {
       var editor = CodeMirror.fromTextArea(el, {
         lineNumbers: true,
+        lineSeparator: '\n',
+        indentUnit: 2, // отступ (что бы это ни значило)
         tabSize: 2,
-        mode: 'application/json',   // application/lg+json
-        gutters: ['CodeMirror-lint-markers'],
+        lineWrapping: true,  // длинные строки переносятся, а не прокручиваются
+        mode: 'text/html',
+        // gutters: ['CodeMirror-lint-markers'],
         theme: theme_is,
-        lint: true,
+        autocorrect: true,
+        spellcheck: true,
         autoCloseTags: true,
         matchBrackets: true,
+        lint: true,
       });
-      editor.setSize('120em', 'auto');
+      editor.setSize('100%', 'auto');
       editor.addKeyMap({
         'Ctrl-S': function (cm) {
           $(el).closest('form').submit();
         },     // submit
         'Ctrl-F': 'findPersistent',       // поиск
       });
+    });
+
+    // инициализация codemirror для json
+    $('.json_editor').each(function (idx, el) {
+      var editor = CodeMirror.fromTextArea(el, {
+        lineNumbers: true,
+        tabSize: 2,
+        mode: 'application/json',
+        lineWrapping: true,  // длинные строки переносятся, а не прокручиваются
+        // readOnly: 'nocursor',
+        undoDepth: 20,
+        // gutters: ['CodeMirror-lint-markers'],
+        theme: theme_is,
+        lint: true,
+        autoCloseTags: true,
+        matchBrackets: true,
+      });
+      editor.setSize('100%', 'auto');
     });
   });
 })();

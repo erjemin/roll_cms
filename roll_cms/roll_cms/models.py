@@ -268,6 +268,6 @@ class TbRoll(models.Model):
         return self.__unicode__()
 
     class Meta:
-        verbose_name = "[…Ролл (список)] ☷⇊"
-        verbose_name_plural = "[…Роллы (списки)] ☷⇊"
+        verbose_name = " ☷⇊ …Ролл (лента)"
+        verbose_name_plural = " ☷⇊ …Роллы (ленты)"
         ordering = ['id', ]
