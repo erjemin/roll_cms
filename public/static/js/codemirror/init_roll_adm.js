@@ -35,6 +35,33 @@
       });
     });
 
+
+    // инициализация codemirror для Заголовка (title) в формате html-кода
+    $('.code_editor_text').each(function (idx, el) {
+      var editor = CodeMirror.fromTextArea(el, {
+        lineNumbers: true,
+        lineSeparator: '\n',
+        indentUnit: 2, // отступ (что бы это ни значило)
+        tabSize: 2,
+        lineWrapping: true,  // длинные строки переносятся, а не прокручиваются
+        mode: 'django',
+        // gutters: ['CodeMirror-lint-markers'],
+        theme: theme_is,
+        autocorrect: true,
+        spellcheck: true,
+        autoCloseTags: true,
+        matchBrackets: true,
+        lint: true,
+      });
+      editor.setSize('100%');
+      editor.addKeyMap({
+        'Ctrl-S': function (cm) {
+          $(el).closest('form').submit();
+        },     // submit
+        'Ctrl-F': 'findPersistent',       // поиск
+      });
+    });
+
     // инициализация codemirror для json
     $('.json_editor').each(function (idx, el) {
       var editor = CodeMirror.fromTextArea(el, {
