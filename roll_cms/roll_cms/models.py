@@ -120,32 +120,33 @@ class TbTemplate(models.Model):
 class TbRoll(models.Model):
     """ Роллы. Они объединяют однородные по представлению сущности (ленты новостей, блоги, фотоальбомы,
     баннеры, товары и т.д.). Таблица в БД `roll_cms_tbroll` """
-    # ============================================================
-    # ТАБЛИЦА TbBlock (КАТЕГОРИИ КОНТЕНТА)
-    # ------------------------------------------------------------
-    # | id                         -- id | primarykey bigint | autoincrement |
-    # | szRollSlug                 -- URL-слаг | VARCHAR(155) | UNIQUE |
-    # | szRollName                 -- имя ролла | VARCHAR(64) | UNIQUE |
-    # | bRollPublished             -- опубликован | TINYINT(1) | DEFAULT 1 |
-    # | kRollTemplate_id           -- шаблон для отображения ролла | foreignkey bigint |
-    # | kDefaultContentTemplate_id -- шаблон (дефолт) для отображения контента | foreignkey bigint |
-    # | iRollItemInPage            -- число единиц контента при паджинации | SMALLINT UNSIGNED | DEFAULT 10 |
-    # | szRollSortRule             -- правило сортировки по умолчанию | VARCHAR(64) | DEFAULT '-dtCreate' |
-    # | szRollFilterRule           -- правило фильтрации по умолчанию | VARCHAR(64) | DEFAULT 'bPublish=True' |
-    # | szRollTitle                -- заголовок ролла | VARCHAR(255) |
-    # | kRollImgPreview_id         -- картинка-превью ролла | foreignkey int |
-    # | szRollText                 -- тизер-текст ролла | TEXT |
-    # | szRollRedirectTo           -- перенаправление ролла (если есть. то вместо ролла будет редирект) | VARCHAR(500) |
-    # | dtRollCreate               -- дата создания ролла | DATETIME(6) | DEFAULT NOW() |
-    # | dtRollTimeStamp            -- штамп времени (дата изменения ролла) | DATETIME(6) | DEFAULT NOW() |
-    # ============================================================
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
+    # Поле               | Назначение                           | Тип          | NULL | DEFAULT | Extra          |
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
+    # id                 | primary key (pk)                     | bigint(20)   | NOT  |         | auto_increment |
+    # szRollSlug         | URL-слаг                             | varchar(155) | YES  | ''      | unique         |
+    # jRollOldSlugs      | Старые URL-слаги                     | json         | YES  | NULL    |                |
+    # szRollName         | Имя ролла  (техническое)             | varchar(64)  | NOT  |         | unique         |
+    # bRollPublished     | Вкл./Выкл. ролл (опубликован)        | tinyint(1)   | NOT  | 1       | index          |
+    # kRollTemplate_id   | Шаблон ролла                         | bigint(20)   | YES  | NULL    | foreign key(?) |
+    # kDefaultContentTemplate_id | Шаблон контента (default)    | bigint(20)   | YES  | NULL    | foreign key(?) |
+    # iRollItemInPage    | Число единиц контента при паджинации | smallint unsigned | YES | 10  | >= 0           |
+    # szRollSortRule     | Правило сортировки по умолчанию      | varchar(64)  | YES  | '-dtCreate'     |        |
+    # szRollFilterRule   | Правило фильтрации по умолчанию      | varchar(64)  | YES  | 'bPublish=True' |        |
+    # szRollTitle        | Заголовок ролла                      | varchar(255) | YES  | ''      | index          |
+    # kRollImgPreview_id | Картинка-превью ролла                | int(11)      | YES  | NULL    | foreign key    |
+    # szRollText         | Тизер-текст ролла                    | text         | YES  | ''      |                |
+    # szRollRedirectTo   | Перенаправление ролла                | varchar(500) | YES  | ''      |                |
+    # dtRollCreate       | Дата создания ролла                  | datetime(6)  | NOT  | NOW()   | index          |
+    # dtRollTimeStamp    | Штамп времени (дата изменения ролла) | datetime(6)  | NOT  | NOW()   | index          |
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
     szRollSlug = models.SlugField(
         default="", max_length=155, blank=True, null=True, db_index=True, unique=True,
         verbose_name="URL-слаг",
         help_text="URL-слаг страницы… 155 символа (пробелы заменяются '-').<br/>"
                   "<small><b>Если оставить пустым, то URL-слаг сформируется автоматически</b></small>"
     )
-    szRollOldSlugs = models.JSONField(
+    jRollOldSlugs = models.JSONField(
         default=list, max_length=255, blank=True, null=True,
         verbose_name="Старые URL-слаги",
         help_text="JSON-список строк (типа <b>[\"старый_слаг_1\", \"старый_слаг_2\", \"и так далее\", ]</b>) из"
@@ -242,9 +243,9 @@ class TbRoll(models.Model):
         max_length=500, default="", blank=True, null=True,
         verbose_name="Редирект на",
         help_text="Иногда нужно, чтобы ролл (пункт меню) был редиректом на другой URL, например когда"
-                  "ролл снят с публикации (включен) и нужно перенаправить трафик.<br/>"
-                  "<small>допустимы как внутренние URL-ссылки от корня сайта '/………',"
-                  " так и внешние URI-ссылки 'http://………'</small>"
+                  "ролл снят с публикации (выключен) и нужно перенаправить трафик.<br/>"
+                  "<small>допустимы как внутренние URL-ссылки от корня сайта '/……/……',"
+                  " так и внешние URI-ссылки 'http://……/……'</small>"
     )
     dtRollCreate = models.DateTimeField(
         auto_now_add=True,  # надо указать False при миграции, после вернуть в True

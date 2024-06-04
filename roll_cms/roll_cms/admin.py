@@ -154,7 +154,7 @@ class RollAdminForm(forms.ModelForm):
         model = TbRoll
         fields = "__all__"
         widgets = {
-            'szRollOldSlugs': forms.Textarea(attrs={'class': 'json_editor'}),
+            'jRollOldSlugs': forms.Textarea(attrs={'class': 'json_editor'}),
             'szRollText': forms.Textarea(attrs={'class': 'code_editor_text'}),
             'szRollTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
         }
@@ -164,9 +164,9 @@ class RollAdminForm(forms.ModelForm):
         # Получаем данные из формы (поля формы)
         form_data: dict = super().clean()
         # ========== Обработка полей управляющих URL-слагами ==========
-        if self.instance.pk is None or form_data['szRollOldSlugs'] is None:
+        if self.instance.pk is None or form_data['jRollOldSlugs'] is None:
             # если это новая запись или старых URL-слагов нет -- создадим список
-            form_data['szRollOldSlugs'] = []
+            form_data['jRollOldSlugs'] = []
         if form_data['szRollSlug'] is None or re.sub(r"\s+", "", form_data['szRollSlug']) == "":
             # если в форме не указали URL-слаг, то создадим его из названия
             created_slug = pytils.translit.slugify(form_data['szRollName']).lower()
@@ -176,11 +176,11 @@ class RollAdminForm(forms.ModelForm):
             form_data['szRollSlug'] = created_slug
         if self.instance.pk is not None and form_data['szRollSlug'] != TbRoll.objects.get(id=self.instance.pk).szRollSlug:
             # если это редактирование существующей записи и URL-слаг изменился, то добавим его в старые URL-слаги
-            if TbRoll.objects.get(id=self.instance.pk).szRollSlug not in form_data['szRollOldSlugs']:
-                form_data['szRollOldSlugs'].append(TbRoll.objects.get(id=self.instance.pk).szRollSlug)
+            if TbRoll.objects.get(id=self.instance.pk).szRollSlug not in form_data['jRollOldSlugs']:
+                form_data['jRollOldSlugs'].append(TbRoll.objects.get(id=self.instance.pk).szRollSlug)
             # если новый URL-слаг уже есть в старых URL-слагах, то удалим его из старых URL-слагов
-            if form_data['szRollSlug'] in form_data['szRollOldSlugs']:
-                form_data['szRollOldSlugs'].remove(form_data['szRollSlug'])
+            if form_data['szRollSlug'] in form_data['jRollOldSlugs']:
+                form_data['jRollOldSlugs'].remove(form_data['szRollSlug'])
         # ========== Обработка полей управляющих типографом и переносами ==========
 
 
@@ -281,7 +281,7 @@ class AdminRoll(admin.ModelAdmin):
             'fields': ('bRollPublish', 'szRollName', ),
         }),
         ('SLUG & REDIRECT', {
-            'fields': (('szRollSlug', 'szRollRedirectTo', ), 'szRollOldSlugs', ),
+            'fields': (('szRollSlug', 'szRollRedirectTo', ), 'jRollOldSlugs', ),
             'classes': ('collapse',),
         }),
         ('ШАБЛОНЫ', {
