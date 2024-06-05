@@ -60,18 +60,10 @@ class AdminTemplate(admin.ModelAdmin):
                 '/static/codemirror-5.65.16/addon/hint/show-hint.css',
                 '/static/codemirror-5.65.16/addon/lint/lint.css',
                 '/static/codemirror-5.65.16/theme/rubyblue.css',    # для темной темы
-                '/static/codemirror-5.65.16/theme/idea.css',        # для светлой темы
+                '/static/codemirror-5.65.16/theme/solarized.css',        # для светлой темы
 
             )
         }
-        # для редактора json
-        # js = (
-        #     '/static/codemirror-5.65.16/lib/codemirror.js',
-        #     '/static/codemirror-5.65.16/mode/javascript/javascript.js',
-        #     '/static/codemirror-5.65.16/addon/lint/lint.js',
-        #     '/static/codemirror-5.65.16/addon/lint/json-lint.js',
-        #     '/static/js/codemirror/init_roll_adm.js'
-        # )
         # Подключаемые JavaScript
         js = (
             '/static/codemirror-5.65.16/lib/codemirror.js',
@@ -192,7 +184,7 @@ class AdminRoll(admin.ModelAdmin):
                        '/static/codemirror-5.65.16/addon/hint/show-hint.css',
                        '/static/codemirror-5.65.16/addon/lint/lint.css',
                        '/static/codemirror-5.65.16/theme/rubyblue.css',  # для темной темы
-                       '/static/codemirror-5.65.16/theme/idea.css',  # для светлой темы
+                       '/static/codemirror-5.65.16/theme/solarized.css',  # для светлой темы
                       )
                }
         js = ('/static/codemirror-5.65.16/lib/codemirror.js',

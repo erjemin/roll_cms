@@ -4,7 +4,7 @@
   var $ = django.jQuery;
   $(document).ready(function () {
     // Включаем "темную" или "светлую" тему в зависимости от настроек браузера пользователя
-    var theme_is = 'idea';
+    var theme_is = 'solarized';
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) theme_is = 'rubyblue';  // dark mode
 
     // Включаем подсветку jinja-тегов {{...}} внутри html

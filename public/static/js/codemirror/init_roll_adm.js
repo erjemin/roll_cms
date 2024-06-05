@@ -6,7 +6,7 @@
   var $ = django.jQuery;
   $(document).ready(function () {
     // Включаем "темную" или "светлую" тему в зависимости от настроек браузера пользователя
-    var theme_is = 'idea'; // светлая тема
+    var theme_is = 'solarized'; // светлая тема
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) theme_is = 'rubyblue';  // тёмная тема
 
     // инициализация codemirror для Заголовка (title) в формате html-кода
