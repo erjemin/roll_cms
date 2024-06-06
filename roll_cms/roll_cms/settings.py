@@ -202,33 +202,31 @@ THUMBNAIL_PROCESSORS = (
 #
 # См. документацию: https://django-filer.readthedocs.io/en/latest/index.html
 # Определяет элемент пути, общий для всех канонических URL-адресов файлов django-filer
-FILER_CANONICAL_URL = '_file_/'
-# Настройки мест хранения, используемых для файлов django-filer
-FILER_STORAGES = {
-    'public': {
-        'main': {
-            'ENGINE': 'filer.storage.PublicFileSystemStorage',
-            'OPTIONS': {
-                'location': MY_FILER_PUBLIC_STORAGE_LOCATION,
-                'base_url': MY_FILER_PUBLIC_STORAGE_BASE_URL,
-            },
-            'UPLOAD_TO': 'filer.utils.generate_filename.randomized',
-            'UPLOAD_TO_PREFIX': MY_FILER_PUBLIC_STORAGE_UPLOAD_TO_PREFIX,
-        },
-        'thumbnails': {
-            'ENGINE': 'filer.storage.PublicFileSystemStorage',
-            'OPTIONS': {
-                'location': MY_FILER_PUBLIC_THUMBNAILS_LOCATION,
-                'base_url': MY_FILER_PUBLIC_THUMBNAILS_BASE_URL,
-            },
-        },
-    },
-    # Если нужны приватные пользовательские файлы, то нужно сделать аналогичное описание для 'private'
-}
+# FILER_CANONICAL_URL = '_file_/'
+# # Настройки мест хранения, используемых для файлов django-filer
+# FILER_STORAGES = {
+#     'public': {
+#         'main': {
+#             'ENGINE': 'filer.storage.PublicFileSystemStorage',
+#             'OPTIONS': {
+#                 'location': MY_FILER_PUBLIC_STORAGE_LOCATION,
+#                 'base_url': MY_FILER_PUBLIC_STORAGE_BASE_URL,
+#             },
+#             'UPLOAD_TO': 'filer.utils.generate_filename.randomized',
+#             'UPLOAD_TO_PREFIX': MY_FILER_PUBLIC_STORAGE_UPLOAD_TO_PREFIX,
+#         },
+#         'thumbnails': {
+#             'ENGINE': 'filer.storage.PublicFileSystemStorage',
+#             'OPTIONS': {
+#                 'location': MY_FILER_PUBLIC_THUMBNAILS_LOCATION,
+#                 'base_url': MY_FILER_PUBLIC_THUMBNAILS_BASE_URL,
+#             },
+#         },
+#     },
+#     # Если нужны приватные пользовательские файлы, то нужно сделать аналогичное описание для 'private'
+# }
 # Количество элементов (папок, файлов), которые должны отображаться на странице в администраторе (по умолчанию 100)
 FILER_PAGINATE_BY = 50
-# Помечает красным вокруг изображений, который использовались для обрезки с учетом местоположения объекта
-FILER_SUBJECT_LOCATION_IMAGE_DEBUG = True if DEBUG else False
 # Ограничение файлов для загрузки одним событием перетаскивания (чтобы избежать случайных загрузок)
 FILER_UPLOADER_MAX_FILES = 15
 # Количество одновременных AJAX-загрузок (по умолчанию 3). Если база данных использует SQLite, по умолчанию будет 1.
@@ -261,19 +259,19 @@ FILER_ADD_FILE_VALIDATORS = {
 # Если FILER_DUMP_PAYLOAD установить в True, то все файлы django-filer будут сохранены (продублированы) в виде
 # бинарных объектов BASE64 базы данных. Когда False -- в базе хранятся только метаданные файлов.
 FILER_DUMP_PAYLOAD = False
-# Для продакшена (боевого сервера) под nginx нужно будет добавить дополнительные переменные и настройки Nginx
-# для ускорения загрузки файлов. См.:
-# https://django-filer.readthedocs.io/en/latest/secure_downloads.html#nginxxaccelredirectserver
-# в конфиге nginx нужно будет сделать приблизительно такие строки:
-#             location /media/_file_/ {
-#                 internal;
-#                 alias /path/to/media/filer/;
-#             }
-#             location /media/_file_s_/ {
-#                 internal;
-#                 alias /path/to/media/filer_x/;
-# Так же см. документацию ngin: http://wiki.nginx.org/XSendfile
 if not DEBUG:
+    # Для продакшена (боевого сервера) под nginx нужно будет добавить дополнительные переменные и настройки Nginx
+    # для ускорения загрузки файлов. См.:
+    # https://django-filer.readthedocs.io/en/latest/secure_downloads.html#nginxxaccelredirectserver
+    # в конфиге nginx нужно будет сделать приблизительно такие строки:
+    #             location /media/_file_/ {
+    #                 internal;
+    #                 alias /path/to/media/filer/;
+    #             }
+    #             location /media/_file_s_/ {
+    #                 internal;
+    #                 alias /path/to/media/filer_x/;
+    # Так же см. документацию ngin: http://wiki.nginx.org/XSendfile
     FILER_SERVERS = {
         'public': {'main': {
                 'ENGINE': 'filer.server.backends.nginx.NginxXAccelRedirectServer',
@@ -293,8 +291,10 @@ if not DEBUG:
         # Если будут и приватные пользовательские файлы, то НЕОБХОДИМО сделать аналогичное описание для 'private'.
         # Это, кроме ускорения, обеспечит и безопасность, т.к. пути к приватным файлам будут скрыты от прямого доступа
     }
-
-
+    FILER_SUBJECT_LOCATION_IMAGE_DEBUG = False
+else:
+    # Помечает красным вокруг изображений, который использовались для обрезки с учетом местоположения объекта
+    FILER_SUBJECT_LOCATION_IMAGE_DEBUG = True
 
 # # Определяем псевдонимы миниатюр THUMBNAIL
 # #   size -- обязательный параметр, определяет границы, в которые должно вписываться сгенерированное изображение.
@@ -336,10 +336,3 @@ if not DEBUG:
 # THUMBNAIL_HIGH_RESOLUTION = True    # Включает миниатюры для дисплеев Retina.
 # THUMBNAIL_PRESERVE_EXTENSIONS = ('png', 'gif')      # Устанавливает файлы, миниатюры которых не преобразуются в JPEG.
 # THUMBNAIL_PROGRESSIVE = 600      # Порог размера (в px), после которого миниатюры будут progressive-jpeg (черезстрочные)
-
-
-
-FILER_SUBJECT_LOCATION_IMAGE_DEBUG = True
-
-
-

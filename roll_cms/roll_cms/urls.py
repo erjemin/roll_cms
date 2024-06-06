@@ -25,8 +25,8 @@ from roll_cms import views
 
 urlpatterns = [
     # для работы django-filer
-    # re_path(r'^filer/', include('filer.urls')),
-    re_path(r'^file_t/', include('filer.urls')),
+    re_path(r'^filer/', include('filer.urls')),
+    # re_path(r'^file_t/', include('filer.urls')),
 
     # # для работы ckeditor_filebrowser_filer и ckeditor
     # path('ckeditor/', include('filer.urls')),
