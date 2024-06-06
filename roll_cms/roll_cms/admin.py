@@ -6,7 +6,7 @@ from django.db import models
 from django.forms import TextInput, Textarea
 # from ckeditor.widgets import CKEditorWidget
 # from codemirror import CodeMirrorTextarea
-from roll_cms.models import TbTemplate, TbRoll
+from roll_cms.models import TbTemplate, TbRoll, TbItem
 # from web.add_function import safe_html_special_symbols
 from roll_cms.settings import *
 from roll_cms.add_function import safe_html_special_symbols, hyphenation_in_text
@@ -25,9 +25,9 @@ import re
 
 
 # ОПИСАНИЯ КЛАССОВ АДМИНКИ
-
+# -- ШАБЛОНЫ {Т}
+# -- Форма для админки шаблонов с подключением codemirror для редактирования шаблонов Django и Jinja2
 class TemplateAdminForm(forms.ModelForm):
-    # подключение codemirror для редактирования шаблонов Django и Jinja2 (для поля szJinjaCode в админке)
     class Meta:
         model = TbTemplate
         fields = "__all__"
@@ -35,19 +35,7 @@ class TemplateAdminForm(forms.ModelForm):
             'szJinjaCode': forms.Textarea(attrs={'class': 'code_editor'})
         }
 
-
-class JsonAdminForm(forms.ModelForm):
-    # подключение codemirror для редактирования json
-    # рецепт: https://webdevblog.ru/redaktirovanie-json-polej-cherez-django-adminku/
-    class Meta:
-        model = TbTemplate
-        fields = "__all__"
-        widgets = {
-            'json-data': forms.Textarea(attrs={'class': 'json-editor'}),
-        }
-
-
-# -- Управление шаблонами
+# -- Админка шаблонов
 @admin.register(TbTemplate)
 class AdminTemplate(admin.ModelAdmin):
     class Media:
@@ -115,8 +103,8 @@ class AdminTemplate(admin.ModelAdmin):
         return ['szFileName', 'szDescription', 'szJinjaCode', 'szVar']
 
 
-# -- Управление роллами
-# Форма для админки с дополнительными полями для типографа и переносов
+# -- РОЛЛЫ [r]
+# -- Форма для админки роллов с codemirror и дополнительными полями типографа и переносов
 class RollAdminForm(forms.ModelForm):
     # добавляем поле для типографа (поле фиктивное, его нет в модели и БД, но его обработка происходит в pre_save)
     typograf = forms.BooleanField(label='Типограф', required=False, initial=False,
@@ -175,7 +163,7 @@ class RollAdminForm(forms.ModelForm):
                 form_data['jRollOldSlugs'].remove(form_data['szRollSlug'])
         # ========== Обработка полей управляющих типографом и переносами ==========
 
-
+# -- Админка роллов
 @admin.register(TbRoll)
 class AdminRoll(admin.ModelAdmin):
     class Media:
@@ -214,6 +202,7 @@ class AdminRoll(admin.ModelAdmin):
 
     # переопределяем метод сохранения модели
     def save_model(self, request, obj, form, change):
+        # TODO: НЕ РАБОТАЕТ!! ПЕРЕНЕСТИ В RollAdminForm.clean() ... и улучшить
         # Проверяем необходимость расстановки переносов и расставляем
         try:
             if form.cleaned_data['hyphenation'] and int(form.cleaned_data['hyphenation_len']) > 6:
@@ -294,4 +283,64 @@ class AdminRoll(admin.ModelAdmin):
     empty_value_display = '<b style=\'color:red;\'>—//—</b>'
     actions_on_top = False
     actions_on_bottom = True
+
+
+# -- Элементы <i>
+# -- Форма для админки элементов с codemirror и дополнительными полями типографа и переносов
+class ItemAdminForm(forms.ModelForm):
+    # добавляем поле для типографа (поле фиктивное, его нет в модели и БД, но его обработка происходит в pre_save)
+    class Meta:
+        model = TbRoll
+        fields = "__all__"
+        widgets = {
+            'jOldSlugs': forms.Textarea(attrs={'class': 'json_editor'}),
+            'jAtt': forms.Textarea(attrs={'class': 'json_editor'}),
+            'szTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
+            'szNote': forms.Textarea(attrs={'class': 'code_editor_text'}),
+            'szText': forms.Textarea(attrs={'class': 'code_editor_title'}),
+        }
+
+
+@admin.register(TbItem)
+class AdminItem(admin.ModelAdmin):
+    class Media:
+        # настройка подключения codemirror
+        css = {'all': ('/static/codemirror-5.65.16/lib/codemirror.css',
+                       '/static/codemirror-5.65.16/addon/hint/show-hint.css',
+                       '/static/codemirror-5.65.16/addon/lint/lint.css',
+                       '/static/codemirror-5.65.16/theme/rubyblue.css',  # для темной темы
+                       '/static/codemirror-5.65.16/theme/solarized.css',  # для светлой темы
+                       )
+               }
+        js = ('/static/codemirror-5.65.16/lib/codemirror.js',
+              '/static/codemirror/formatting.js',
+              '/static/codemirror-5.65.16/mode/javascript/javascript.js',
+              '/static/codemirror-5.65.16/mode/xml/xml.js',
+              '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
+              '/static/codemirror-5.65.16/mode/django/django.js',
+              '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
+              '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+              '/static/codemirror-5.65.16/addon/mode/overlay.js',
+              '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
+              '/static/codemirror-5.65.16/addon/runmode/colorize.js',
+              '/static/codemirror-5.65.16/addon/lint/lint.js',
+              '/static/codemirror-5.65.16/addon/hint/show-hint.js',
+              '/static/codemirror-5.65.16/addon/lint/json-lint.js',
+              '/static/codemirror-5.65.16/addon/edit/closetag.js',
+
+              '/static/js/codemirror/init_roll_adm.js',
+              )
+
+    form = ItemAdminForm
+
+    # Переопределяем способ получения полей из модели в форму админки (чтобы получить фиктивные поля).
+    def get_form(self, request, obj=None, **kwargs):
+        return super().get_form(request, obj, **kwargs)
+
+    formfield_overrides = {models.TextField: {'widget': forms.Textarea(attrs={'class': 'code_editor'})}}
+    list_display = ('id', 'szTitle', 'szSlug', 'iSort', 'tdStart',
+                    'tdStop', 'bPublish')
+    list_display_links = ('id', 'szTitle', 'szSlug')
+    search_fields = ['szTitle', 'szNote', 'szText']
+    list_editable = ('bPublish',)
 
