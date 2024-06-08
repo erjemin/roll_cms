@@ -52,5 +52,6 @@ $(document).ready(function () {
       'Ctrl-F': 'findPersistent',       // поиск
     });
   });
+  // Зададим min-height для блока редактора (элемент .CodeMirror-lines вложенный в .CodeMirror и следующий за .code_editor)
   $('.code_editor + .CodeMirror .CodeMirror-lines').css('min-height', '18em');
 });

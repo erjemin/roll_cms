@@ -18,5 +18,6 @@ $(document).ready(function () {
     });
     editor.setSize('100%', 'auto');
   });
+  // Зададим min-height для блока редактора (элемент .CodeMirror-lines вложенный в .CodeMirror и следующий за .json_editor2)
   $('.json_editor2 + .CodeMirror .CodeMirror-lines').css('min-height', '6em');
 });
