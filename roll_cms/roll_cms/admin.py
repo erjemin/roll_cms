@@ -15,14 +15,37 @@ import pytils
 import random
 import re
 
-
-# from codemirror.widgets import CodeMirror
-
-# class MyModelAdmin(admin.ModelAdmin):
-
-
-# admin.site.register(MyModel, MyModelAdmin)
-
+# Стилевые настройки для codemirror (единые для всех разделов админки)
+cm_css = {'all': (
+    '/static/codemirror-5.65.16/lib/codemirror.css',
+    '/static/codemirror-5.65.16/addon/hint/show-hint.css',
+    '/static/codemirror-5.65.16/addon/lint/lint.css',
+    '/static/codemirror-5.65.16/theme/rubyblue.css',        # для темной темы
+    '/static/codemirror-5.65.16/theme/solarized.css',       # для светлой темы
+    )
+}
+# JavaScript-файлы для codemirror (единые для всех разделов админки)
+cm_js = [
+    '/static/codemirror-5.65.16/lib/codemirror.js',
+    '/static/codemirror-5.65.16/mode/xml/xml.js',
+    '/static/codemirror-5.65.16/mode/javascript/javascript.js',
+    '/static/codemirror-5.65.16/mode/css/css.js',
+    '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
+    '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
+    '/static/codemirror-5.65.16/mode/django/django.js',
+    '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
+    '/static/codemirror-5.65.16/addon/hint/show-hint.js',
+    '/static/codemirror-5.65.16/addon/lint/lint.js',
+    '/static/codemirror-5.65.16/addon/lint/html-lint.js',
+    '/static/codemirror-5.65.16/addon/lint/json-lint.js',
+    '/static/codemirror-5.65.16/addon/lint/javascript-lint.js',
+    '/static/codemirror-5.65.16/addon/lint/css-lint.js',
+    '/static/codemirror-5.65.16/addon/mode/multiplex.js',
+    '/static/codemirror-5.65.16/addon/mode/simple.js',
+    '/static/codemirror-5.65.16/addon/mode/overlay.js',
+    '/static/codemirror-5.65.16/addon/edit/closetag.js',
+    '/static/codemirror-5.65.16/addon/runmode/colorize.js',
+]
 
 # ОПИСАНИЯ КЛАССОВ АДМИНКИ
 # -- ШАБЛОНЫ {Т}
@@ -30,7 +53,7 @@ import re
 class TemplateAdminForm(forms.ModelForm):
     class Meta:
         model = TbTemplate
-        fields = "__all__"
+        fields = '__all__'
         widgets = {
             'szJinjaCode': forms.Textarea(attrs={'class': 'code_editor'})
         }
@@ -40,42 +63,12 @@ class TemplateAdminForm(forms.ModelForm):
 class AdminTemplate(admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
-        # подключаемые CSS
-        css = {
-            'all': (
-                '/static/codemirror-5.65.16/doc/docs.css',
-                '/static/codemirror-5.65.16/lib/codemirror.css',
-                '/static/codemirror-5.65.16/addon/hint/show-hint.css',
-                '/static/codemirror-5.65.16/addon/lint/lint.css',
-                '/static/codemirror-5.65.16/theme/rubyblue.css',    # для темной темы
-                '/static/codemirror-5.65.16/theme/solarized.css',        # для светлой темы
-
-            )
-        }
-        # Подключаемые JavaScript
-        js = (
-            '/static/codemirror-5.65.16/lib/codemirror.js',
-            '/static/codemirror-5.65.16/mode/xml/xml.js',
-            '/static/codemirror-5.65.16/mode/javascript/javascript.js',
-            '/static/codemirror-5.65.16/mode/css/css.js',
-            '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
-            '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
-            '/static/codemirror-5.65.16/mode/django/django.js',
-            '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
-            '/static/codemirror-5.65.16/addon/hint/show-hint.js',
-            '/static/codemirror-5.65.16/addon/lint/lint.js',
-            '/static/codemirror-5.65.16/addon/lint/html-lint.js',
-            '/static/codemirror-5.65.16/addon/lint/json-lint.js',
-            '/static/codemirror-5.65.16/addon/lint/javascript-lint.js',
-            '/static/codemirror-5.65.16/addon/lint/css-lint.js',
-            '/static/codemirror-5.65.16/addon/mode/multiplex.js',
-            '/static/codemirror-5.65.16/addon/mode/simple.js',
-            '/static/codemirror-5.65.16/addon/mode/overlay.js',
-            '/static/codemirror-5.65.16/addon/edit/closetag.js',
-            '/static/codemirror-5.65.16/addon/runmode/colorize.js',
-
-            '/static/js/codemirror/init_template_adm.js',
-        )
+        css = cm_css  # подключаемые CSS
+        js = [        # Подключаемые JavaScript
+            *cm_js,
+            '/static/js/codemirror/set_theme.js',
+            '/static/js/codemirror/init_cm_jinja.js',
+        ]
 
     form = TemplateAdminForm  # подключение формы TemplateAdminForm
     search_fields = ['szFileName', 'szDescription', 'szJinjaCode']
@@ -134,9 +127,9 @@ class RollAdminForm(forms.ModelForm):
         model = TbRoll
         fields = "__all__"
         widgets = {
-            'jRollOldSlugs': forms.Textarea(attrs={'class': 'json_editor'}),
-            'szRollText': forms.Textarea(attrs={'class': 'code_editor_text'}),
+            'jRollOldSlugs': forms.Textarea(attrs={'class': 'json_editor1'}),
             'szRollTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
+            'szRollText': forms.Textarea(attrs={'class': 'code_editor_text'}),
         }
 
     def clean(self):
@@ -168,33 +161,14 @@ class RollAdminForm(forms.ModelForm):
 class AdminRoll(admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
-        css = {'all': ('/static/codemirror-5.65.16/lib/codemirror.css',
-                       '/static/codemirror-5.65.16/addon/hint/show-hint.css',
-                       '/static/codemirror-5.65.16/addon/lint/lint.css',
-                       '/static/codemirror-5.65.16/theme/rubyblue.css',  # для темной темы
-                       '/static/codemirror-5.65.16/theme/solarized.css',  # для светлой темы
-                      )
-               }
-        js = ('/static/codemirror-5.65.16/lib/codemirror.js',
-              '/static/codemirror/formatting.js',
-              '/static/codemirror-5.65.16/mode/javascript/javascript.js',
-              '/static/codemirror-5.65.16/mode/xml/xml.js',
-              '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
-              '/static/codemirror-5.65.16/mode/django/django.js',
-              '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
-              '/static/codemirror-5.65.16/addon/mode/multiplex.js',
-              '/static/codemirror-5.65.16/addon/mode/overlay.js',
-              '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
-              '/static/codemirror-5.65.16/addon/runmode/colorize.js',
-              '/static/codemirror-5.65.16/addon/lint/lint.js',
-              '/static/codemirror-5.65.16/addon/hint/show-hint.js',
-              '/static/codemirror-5.65.16/addon/lint/json-lint.js',
-              '/static/codemirror-5.65.16/addon/edit/closetag.js',
-
-              '/static/js/codemirror/init_roll_adm.js',
-              )
-
-    form = RollAdminForm
+        css = cm_css  # подключаемые CSS
+        js = [        # Подключаемые JavaScript
+            *cm_js,
+            '/static/js/codemirror/set_theme.js',
+            '/static/js/codemirror/init_cm_json_1.js',
+            '/static/js/codemirror/init_cm_title.js',
+            '/static/js/codemirror/init_cm_text.js',
+        ]
 
     # Переопределяем способ получения полей из модели в форму админки (чтобы получить фиктивные поля).
     def get_form(self, request, obj=None, **kwargs):
@@ -250,7 +224,7 @@ class AdminRoll(admin.ModelAdmin):
             obj.szRollSlug = result_slug
         obj.save()
 
-    formfield_overrides = {models.TextField: {'widget': forms.Textarea(attrs={'class': 'code_editor'})}}
+    form = RollAdminForm
     list_display = ('id', 'szRollName', 'kRollTemplate', 'kDefaultContentTemplate', 'iRollItemInPage',
                     'szRollSortRule', 'bRollPublish')
     list_display_links = ('id', 'szRollName')
@@ -293,11 +267,11 @@ class ItemAdminForm(forms.ModelForm):
         model = TbRoll
         fields = "__all__"
         widgets = {
-            'jOldSlugs': forms.Textarea(attrs={'class': 'json_editor'}),
-            'jAtt': forms.Textarea(attrs={'class': 'json_editor'}),
+            'jOldSlugs': forms.Textarea(attrs={'class': 'json_editor1'}),
+            'jAtt': forms.Textarea(attrs={'class': 'json_editor2'}),
             'szTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
-            'szNote': forms.Textarea(attrs={'class': 'code_editor_text'}),
-            'szText': forms.Textarea(attrs={'class': 'code_editor_title'}),
+            'szNote': forms.Textarea(attrs={'class': 'code_editor_note'}),
+            'szText': forms.Textarea(attrs={'class': 'code_editor_text'}),
         }
 
 
@@ -305,41 +279,23 @@ class ItemAdminForm(forms.ModelForm):
 class AdminItem(admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
-        css = {'all': ('/static/codemirror-5.65.16/lib/codemirror.css',
-                       '/static/codemirror-5.65.16/addon/hint/show-hint.css',
-                       '/static/codemirror-5.65.16/addon/lint/lint.css',
-                       '/static/codemirror-5.65.16/theme/rubyblue.css',  # для темной темы
-                       '/static/codemirror-5.65.16/theme/solarized.css',  # для светлой темы
-                       )
-               }
-        js = ('/static/codemirror-5.65.16/lib/codemirror.js',
-              '/static/codemirror/formatting.js',
-              '/static/codemirror-5.65.16/mode/javascript/javascript.js',
-              '/static/codemirror-5.65.16/mode/xml/xml.js',
-              '/static/codemirror-5.65.16/mode/jinja2/jinja2.js',
-              '/static/codemirror-5.65.16/mode/django/django.js',
-              '/static/codemirror-5.65.16/mode/htmlmixed/htmlmixed.js',
-              '/static/codemirror-5.65.16/addon/mode/multiplex.js',
-              '/static/codemirror-5.65.16/addon/mode/overlay.js',
-              '/static/codemirror-5.65.16/addon/hint/xml-hint.js',
-              '/static/codemirror-5.65.16/addon/runmode/colorize.js',
-              '/static/codemirror-5.65.16/addon/lint/lint.js',
-              '/static/codemirror-5.65.16/addon/hint/show-hint.js',
-              '/static/codemirror-5.65.16/addon/lint/json-lint.js',
-              '/static/codemirror-5.65.16/addon/edit/closetag.js',
-
-              '/static/js/codemirror/init_roll_adm.js',
-              )
-
-    form = ItemAdminForm
+        css = cm_css  # подключаемые CSS
+        js = [        # Подключаемые JavaScript
+            *cm_js,
+            '/static/js/codemirror/set_theme.js',
+            '/static/js/codemirror/init_cm_json_1.js',
+            '/static/js/codemirror/init_cm_json_2.js',
+            '/static/js/codemirror/init_cm_title.js',
+            '/static/js/codemirror/init_cm_note.js',
+            '/static/js/codemirror/init_cm_text.js',
+        ]
 
     # Переопределяем способ получения полей из модели в форму админки (чтобы получить фиктивные поля).
     def get_form(self, request, obj=None, **kwargs):
         return super().get_form(request, obj, **kwargs)
 
-    formfield_overrides = {models.TextField: {'widget': forms.Textarea(attrs={'class': 'code_editor'})}}
-    list_display = ('id', 'szTitle', 'szSlug', 'iSort', 'tdStart',
-                    'tdStop', 'bPublish')
+    form = ItemAdminForm
+    list_display = ('id', 'szTitle', 'szSlug', 'iSort', 'tdStart', 'tdStop', 'bPublish')
     list_display_links = ('id', 'szTitle', 'szSlug')
     search_fields = ['szTitle', 'szNote', 'szText']
     list_editable = ('bPublish',)
