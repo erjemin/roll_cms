@@ -141,13 +141,13 @@ class TbRoll(models.Model):
     # dtRollTimeStamp    | Штамп времени (дата изменения ролла) | datetime(6)  | NOT  | NOW()   | index          |
     # -------------------+--------------------------------------+--------------+------+---------+----------------+
     szRollSlug = models.SlugField(
-        default="", max_length=155, blank=True, null=True, db_index=True, unique=True,
+        default="", max_length=SLUG_LENGTH, blank=True, null=True, db_index=True, unique=True,
         verbose_name="URL-слаг",
-        help_text="URL-слаг страницы… 155 символа (пробелы заменяются \"-\").<br/>"
-                  "<small><b>Если оставить пустым, то URL-слаг сформируется автоматически</b></small>"
+        help_text=f"URL-слаг страницы… {SLUG_LENGTH} символа (пробелы заменяются \"-\").<br/>"
+                  f"<small><b>Если оставить пустым, то URL-слаг сформируется автоматически</b></small>"
     )
     jRollOldSlugs = models.JSONField(
-        default=list, max_length=255, blank=True, null=True,
+        default=list, blank=True, null=True,
         verbose_name="Старые URL-слаги",
         help_text="JSON-список строк (типа <b>[\"старый_слаг_1\", \"старый_слаг_2\", \"и так далее\", ]</b>) из"
                   " предыдущих URL-слагов, которые использовались для этого ролла ранее. Возможно нужно для корректной"
@@ -291,23 +291,23 @@ class TbItem(models.Model):
         default=True, db_index=True,
         verbose_name="Опуб…",
         help_text="Опубликовано. Элемент будет отображаться в соответствующей ленте категории и"
-                  "&nbsp;при его просмотре будет отображаться навигация &laque;Предыдущий/Следующий&raque;."
+                  "&nbsp;при его просмотре будет отображаться навигация «Предыдущий/Следующий»."
     )
     tdStart = models.DateTimeField(
         db_index=True,  default=now,   # datetime.date.today(),
         verbose_name="Дата публикации",
-        help_text=u"Дата публикации, с её момента элемент появится на сайте."
+        help_text=u"C этого момента элемент<br/>появится на сайте."
     )
     tdStop = models.DateTimeField(
         db_index=True,  default=None, blank=True, null=True,
         verbose_name="Дата снятия",
-        help_text=u"Дата снятия с публикации, после этого элемент перестанет отображаться на сайте."
+        help_text=u"После этой даты элемент<br/>не отображается на сайте."
     )
     iSort = models.SmallIntegerField(
         default=0, db_index=True,
         verbose_name="Сорт.",
-        help_text="Целое число. <small>Может использоваться для сортировки элементов в ролле, а может не"
-                  " использоваться, зависит от настроек правил фильтрации в самом ролле.</small>"
+        help_text="Целое число.<br /><small>Может использоваться для сортировки<br/>элементов в ролле. Зависит от<br/>"
+                  "настроек правил фильтрации в ролле.</small>"
     )
     szTitle = models.CharField(
         max_length=768, default="", blank=False, null=False,
@@ -350,13 +350,13 @@ class TbItem(models.Model):
                   " на базе заголовка анонса</b></small>"
     )
     szSlug = models.SlugField(
-        default="", max_length=155, blank=True, null=True, db_index=True, unique=True,
+        default="", max_length=SLUG_LENGTH, blank=True, null=True, db_index=True, unique=True,
         verbose_name="URL-слаг",
-        help_text="URL-слаг страницы… 155 символов (пробелы заменяются \"-\").<br/>"
-                  "<small><b>Если оставить пустым, то URL-слаг сформируется автоматически</b></small>"
+        help_text=f"URL-слаг страницы… {SLUG_LENGTH} символов (пробелы заменяются \"-\").<br/>"
+                  f"<small><b>Если оставить пустым, то URL-слаг сформируется автоматически</b></small>"
     )
     jOldSlugs = models.JSONField(
-        default=list, max_length=255, blank=True, null=True,
+        default=list, blank=True, null=True,
         verbose_name="Старые URL-слаги",
         help_text="JSON-список строк (типа <b>[\"старый_слаг_1\", \"старый_слаг_2\", \"и так далее\", ]</b>) из"
                   " предыдущих URL-слагов, которые использовались для этого элемента. Возможно нужно для корректной"
@@ -370,7 +370,7 @@ class TbItem(models.Model):
                   " (например, для удаления слагов, редиректы для которых больше не требуется)</b>"
     )
     jAtt = models.JSONField(
-        default=dict, max_length=255, blank=True, null=True,
+        default=dict, blank=True, null=True,
         verbose_name="Атрибуты и теги",
         help_text="JSON-словарь (ключ-значение), который будет обработан логикой приложения и отображён через"
                   " соответствующий ключу шаблон (функционал пока не реализован). Например:<br />"

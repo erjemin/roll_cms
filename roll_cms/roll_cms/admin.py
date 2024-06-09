@@ -123,15 +123,6 @@ class RollAdminForm(forms.ModelForm):
                                                  help_text='Использовать &amp;shy;<br />'
                                                            '<small>Иначе через юникод-символ</small>')
 
-    class Meta:
-        model = TbRoll
-        fields = "__all__"
-        widgets = {
-            'jRollOldSlugs': forms.Textarea(attrs={'class': 'json_editor1'}),
-            'szRollTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
-            'szRollText': forms.Textarea(attrs={'class': 'code_editor_text'}),
-        }
-
     def clean(self):
         # Переопределим валидацию формы TbRoll-адмики и, заодно, переопределим значения некоторых полей.
         # Получаем данные из формы (поля формы)
@@ -144,10 +135,11 @@ class RollAdminForm(forms.ModelForm):
             # если в форме не указали URL-слаг, то создадим его из названия
             created_slug = pytils.translit.slugify(form_data['szRollName']).lower()
             # проверим уникальность созданного URL-слага
-            while TbRoll.objects.filter(szRollSlug=created_slug).count() != 0:
-                f"{created_slug[0:-3]}-{int(random.uniform(0, 255)):x}"
+            while TbRoll.objects.filter(szRollSlug=created_slug[:155]).count() != 0:  # 155 - длина поля в БД
+                f"{created_slug[:152]}-{int(random.uniform(0, 255)):x}"
             form_data['szRollSlug'] = created_slug
-        if self.instance.pk is not None and form_data['szRollSlug'] != TbRoll.objects.get(id=self.instance.pk).szRollSlug:
+        if self.instance.pk is not None and form_data['szRollSlug'] != TbRoll.objects.get(
+                id=self.instance.pk).szRollSlug:
             # если это редактирование существующей записи и URL-слаг изменился, то добавим его в старые URL-слаги
             if TbRoll.objects.get(id=self.instance.pk).szRollSlug not in form_data['jRollOldSlugs']:
                 form_data['jRollOldSlugs'].append(TbRoll.objects.get(id=self.instance.pk).szRollSlug)
@@ -155,6 +147,15 @@ class RollAdminForm(forms.ModelForm):
             if form_data['szRollSlug'] in form_data['jRollOldSlugs']:
                 form_data['jRollOldSlugs'].remove(form_data['szRollSlug'])
         # ========== Обработка полей управляющих типографом и переносами ==========
+
+    class Meta:
+        model = TbRoll
+        fields = "__all__"
+        widgets = {
+            'jRollOldSlugs': forms.Textarea(attrs={'class': 'json_editor1'}),
+            'szRollTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
+            'szRollText': forms.Textarea(attrs={'class': 'code_editor_text'}),
+        }
 
 # -- Админка роллов
 @admin.register(TbRoll)
@@ -263,6 +264,60 @@ class AdminRoll(admin.ModelAdmin):
 # -- Форма для админки элементов с codemirror и дополнительными полями типографа и переносов
 class ItemAdminForm(forms.ModelForm):
     # добавляем поле для типографа (поле фиктивное, его нет в модели и БД, но его обработка происходит в pre_save)
+    typograf = forms.ChoiceField(label='Типограф', required=False, initial=0,
+                                 choices=[(0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
+                                          (3, 'Только текст'), (4, 'Заголовки и анонс'), (5, 'Заголовки и текст'),
+                                          (6, 'Анонс и текст'), (7, 'Всё')],
+                                 help_text='<div style=\'margin-right:6em;\'>Обработать через встроенный'
+                                           '<a href="http://mdash.ru" target="_blank">Типограф Муравьёва 3.5</a></div>'
+                                           '<small><b>ХОРОШИЙ ТИПОГРАФ НО ИНОГДА ГЛЮЧИТ!</b><br/>'
+                                           '&laquo;приклеивает&raquo; союзы и числительные, поддерживает неразрывные'
+                                           '<br/>конструкции, замена тире, очень <b>навороченная расстановка<br/>'
+                                           'кавычек</b> (с горизонтальным смещением, как при книжной<br/>'
+                                           'типографике, идеально для цитат и прямой речи), расставляет<br/>'
+                                           'абзацы (кроме заголовков) и т.п.</small>')
+
+    hang_punct = forms.ChoiceField(label='Висячая пунктуация', required=False, initial=False,
+                                   choices=[(0, 'Выключена'), (1, 'C помощью встроенного CSS'), (2, 'C помощью Class')],
+                                   help_text='Висячая пунктуация — это способ<br/>расположения кавычек и скобок<br/>'
+                                             'при левостороннем выравнивании (флажком).')
+
+    hyp = forms.ChoiceField(label='Переносы', required=False, initial='off',
+                            choices=[(0, 'Выключены'), (15, 'Слова ≥ 14 символов'), (8, 'Слова ≥ 8 символов')],
+                            help_text='<div style=\'margin-right:15em;\'>Включить автоматические переносы<br />'
+                                      'русскоязычных слов по слогам)</div>')
+
+    mnemo = forms.ChoiceField(label="Мнемокод", required=False, initial=2,
+                              choices=[(0, 'Все удалить'), (1, 'Мнемокод'), (2, 'Юникод')],
+                              help_text='Способ кодирования спецсимволов.<br /><small>'
+                                        'Мнемокод: &amp;laquo; &amp;copy; &amp;raquo; &amp;hellip; — совместим</br>со'
+                                        ' старыми браузерами; Юникод: « © » … — компактнее.</br>'
+                                        '<b style=\'color:red;\'>Все удалить — так же удалит все переносы.</b></small>')
+
+    def clean(self):
+        # Переопределим валидацию формы TbItem-адмики и, заодно, переопределим значения некоторых полей.
+        # Получаем данные из формы (поля формы)
+        form_data: dict = super().clean()
+        # ========== Обработка полей управляющих URL-слагами ==========
+        if self.instance.pk is None or form_data['jOldSlugs'] is None:
+            # если это новая запись или старых URL-слагов нет -- создадим список
+            form_data['jOldSlugs'] = []
+        if form_data['szSlug'] is None or re.sub(r"\s+", "", form_data['szSlug']) == "":
+            # если в форме не указали URL-слаг, то создадим его из названия
+            created_slug = pytils.translit.slugify(form_data['szTitle']).lower()
+            # проверим уникальность созданного URL-слага
+            while TbItem.objects.filter(szSlug=created_slug[0:155]).count() != 0:   # 155 - длина поля в БД
+                f"{created_slug[:152]}-{int(random.uniform(0, 255)):x}"
+            form_data['szSlug'] = created_slug
+        if self.instance.pk is not None and form_data['szSlug'] != TbItem.objects.get(id=self.instance.pk).szSlug:
+            # если это редактирование существующей записи и URL-слаг изменился, то добавим его в старые URL-слаги
+            if TbItem.objects.get(id=self.instance.pk).szSlug not in form_data['jOldSlugs']:
+                form_data['jOldSlugs'].append(TbItem.objects.get(id=self.instance.pk).szSlug)
+            # если новый URL-слаг уже есть в старых URL-слагах, то удалим его из старых URL-слагов
+            if form_data['szSlug'] in form_data['jOldSlugs']:
+                form_data['jOldSlugs'].remove(form_data['szSlug'])
+        # ========== Обработка полей управляющих типографом и переносами ==========
+
     class Meta:
         model = TbRoll
         fields = "__all__"
@@ -299,4 +354,39 @@ class AdminItem(admin.ModelAdmin):
     list_display_links = ('id', 'szTitle', 'szSlug')
     search_fields = ['szTitle', 'szNote', 'szText']
     list_editable = ('bPublish',)
+    # Настройка страницы редактирования
+    fieldsets = [
+        (None, {
+            'fields': ('kRoll', 'bPublish',),
+        }),
+        ('ДАТА И СОРТИРОВКА', {
+            'fields': (('tdStart', 'tdStop',), ('iSort',),),
+            'classes': ('collapse',),
+        }),
+        ('ЭЛЕМЕНТ КОНТЕНТА (заголовок, картинка, анонс и т.д.)', {
+            'fields': ('szTitle', 'kImg', 'szNote', 'szText',),
+        }),
+        ('ТИПОГРАФ И ПЕРЕНОСЫ', {
+            'fields': (('typograf', 'hang_punct',), ('hyp', 'mnemo',),),
+            'classes': ('collapse',),
+        }),
+        ('SLUG', {
+            'fields': ('szSlug', 'jOldSlugs',),
+            'classes': ('collapse',),
+        }),
+        ('SEO', {
+            'fields': ('szSeoKeywords', 'szSeoDescription',),
+            'classes': ('collapse',),
+        }),
+        ('СПЕЦ-ШАБЛОН', {
+            'fields': ('kTemplate',),
+            'classes': ('collapse',),
+        }),
+        ('АТРИБУТЫ и ТЕГИ', {
+            'fields': ('jAtt',),
+        }),
+    ]
+    empty_value_display = '<b style=\'color:red;\'>—//—</b>'
+    actions_on_top = False
+    actions_on_bottom = True
 
