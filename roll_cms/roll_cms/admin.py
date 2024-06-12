@@ -156,8 +156,8 @@ class RollAdminForm(TypografAdminForm):
             # если в форме не указали URL-слаг, то создадим его из названия
             created_slug = pytils.translit.slugify(form_data['szRollName']).lower()
             # проверим уникальность созданного URL-слага
-            while TbRoll.objects.filter(szRollSlug=created_slug[:155]).count() != 0:  # 155 - длина поля в БД
-                f"{created_slug[:152]}-{int(random.uniform(0, 255)):x}"
+            while TbRoll.objects.filter(szRollSlug=created_slug[:SLUG_LENGTH]).count() != 0:
+                f"{created_slug[:SLUG_LENGTH-3]}-{int(random.uniform(0, 255)):x}"
             form_data['szRollSlug'] = created_slug
         if self.instance.pk is not None and form_data['szRollSlug'] != TbRoll.objects.get(
                 id=self.instance.pk).szRollSlug:
@@ -302,8 +302,8 @@ class ItemAdminForm(TypografAdminForm):
             # если в форме не указали URL-слаг, то создадим его из названия
             created_slug = pytils.translit.slugify(form_data['szTitle']).lower()
             # проверим уникальность созданного URL-слага
-            while TbItem.objects.filter(szSlug=created_slug[0:155]).count() != 0:   # 155 - длина поля в БД
-                f"{created_slug[:152]}-{int(random.uniform(0, 255)):x}"
+            while TbItem.objects.filter(szSlug=created_slug[:SLUG_LENGTH]).count() != 0:
+                f"{created_slug[:SLUG_LENGTH-3]}-{int(random.uniform(0, 255)):x}"
             form_data['szSlug'] = created_slug
         if self.instance.pk is not None and form_data['szSlug'] != TbItem.objects.get(id=self.instance.pk).szSlug:
             # если это редактирование существующей записи и URL-слаг изменился, то добавим его в старые URL-слаги
