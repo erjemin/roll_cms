@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django import forms
 from django.contrib import admin
 from django import forms
 from django.db import models
@@ -7,9 +6,8 @@ from django.forms import TextInput, Textarea
 # from ckeditor.widgets import CKEditorWidget
 # from codemirror import CodeMirrorTextarea
 from roll_cms.models import TbTemplate, TbRoll, TbItem
-# from web.add_function import safe_html_special_symbols
 from roll_cms.settings import *
-from roll_cms.add_function import safe_html_special_symbols, hyphenation_in_text
+from roll_cms.add_function import hyphenation_in_text, process_slug_fields
 import roll_cms.EMT as EMT
 import pytils
 import random
@@ -46,6 +44,7 @@ cm_js = [
     '/static/codemirror-5.65.16/addon/edit/closetag.js',
     '/static/codemirror-5.65.16/addon/runmode/colorize.js',
 ]
+
 
 # ОПИСАНИЯ КЛАССОВ АДМИНКИ
 # -- ШАБЛОНЫ {Т}
@@ -126,8 +125,10 @@ class TypografAdminForm(forms.ModelForm):
                             help_text='<div style=\'margin-right:15em;\'>Включить автоматические переносы<br />'
                                       'русскоязычных слов по слогам)</div>')
 
-    mnemo = forms.ChoiceField(label="Мнемокод", required=False, initial=2,
-                              choices=[(0, 'Все удалить'), (1, 'Мнемокод'), (2, 'Юникод')],
+    mnemo = forms.ChoiceField(label="Спец.символы", required=False, initial=2,
+                              choices=[(1, 'Мнемокод'), (2, 'Юникод'), (3, 'Удалить странный мнемокод'),
+                                       (4, 'Сделать <p> и <br> из CR и CRLF (\\n и \\n\\r)'),
+                                       (5, 'Очистить от HTML и странного мнемокода'),],
                               help_text='Способ кодирования спецсимволов.<br /><small>'
                                         'Мнемокод: &amp;laquo; &amp;copy; &amp;raquo; &amp;hellip; — совместим</br>со'
                                         ' старыми браузерами; Юникод: « © » … — компактнее.</br>'
@@ -144,30 +145,15 @@ class RollAdminForm(TypografAdminForm):
         super().__init__(*args, typograf_choices=[(0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
                                                   (3, 'Только текст'), (4, 'Заголовки и анонс'), (5, 'Заголовки и текст'),
                                                   (6, 'Анонс и текст'), (7, 'Всё')], **kwargs)
+
     def clean(self):
         # Переопределим валидацию формы TbRoll-адмики и, заодно, переопределим значения некоторых полей.
+        # ========== Обработка полей управляющих URL-слагами ==========
+        process_slug_fields(self, field_4_sz_slug='szRollSlug', field_4_js_old_slugs='jRollOldSlugs',
+                            field_4_slug_make_from='szRollName', model=TbRoll)
+        # ========== Обработка полей управляющих типографом и переносами ==========
         # Получаем данные из формы (поля формы)
         form_data: dict = super().clean()
-        # ========== Обработка полей управляющих URL-слагами ==========
-        if self.instance.pk is None or form_data['jRollOldSlugs'] is None:
-            # если это новая запись или старых URL-слагов нет -- создадим список
-            form_data['jRollOldSlugs'] = []
-        if form_data['szRollSlug'] is None or re.sub(r"\s+", "", form_data['szRollSlug']) == "":
-            # если в форме не указали URL-слаг, то создадим его из названия
-            created_slug = pytils.translit.slugify(form_data['szRollName']).lower()
-            # проверим уникальность созданного URL-слага
-            while TbRoll.objects.filter(szRollSlug=created_slug[:SLUG_LENGTH]).count() != 0:
-                f"{created_slug[:SLUG_LENGTH-3]}-{int(random.uniform(0, 255)):x}"
-            form_data['szRollSlug'] = created_slug
-        if self.instance.pk is not None and form_data['szRollSlug'] != TbRoll.objects.get(
-                id=self.instance.pk).szRollSlug:
-            # если это редактирование существующей записи и URL-слаг изменился, то добавим его в старые URL-слаги
-            if TbRoll.objects.get(id=self.instance.pk).szRollSlug not in form_data['jRollOldSlugs']:
-                form_data['jRollOldSlugs'].append(TbRoll.objects.get(id=self.instance.pk).szRollSlug)
-            # если новый URL-слаг уже есть в старых URL-слагах, то удалим его из старых URL-слагов
-            if form_data['szRollSlug'] in form_data['jRollOldSlugs']:
-                form_data['jRollOldSlugs'].remove(form_data['szRollSlug'])
-        # ========== Обработка полей управляющих типографом и переносами ==========
 
     class Meta:
         model = TbRoll
@@ -236,14 +222,6 @@ class AdminRoll(admin.ModelAdmin):
         except KeyError:
             pass
 
-        # Проверяем наличие URL-слага и его уникальность
-        if obj.szRollSlug is None or obj.szRollSlug == "" or " " in obj.szRollSlug:
-            result_slug = pytils.translit.slugify(
-                safe_html_special_symbols(obj.szRollName)
-            ).lower()
-            while TbRoll.objects.filter(szRollSlug=result_slug).count() != 0:
-                f"{result_slug[0:-3]}-{int(random.uniform(0, 255)):x}"
-            obj.szRollSlug = result_slug
         obj.save()
 
     form = RollAdminForm
@@ -292,27 +270,12 @@ class ItemAdminForm(TypografAdminForm):
 
     def clean(self):
         # Переопределим валидацию формы TbItem-адмики и, заодно, переопределим значения некоторых полей.
+        # ========== Обработка полей управляющих URL-слагами ==========
+        process_slug_fields(self, field_4_sz_slug='szSlug', field_4_js_old_slugs='jOldSlugs',
+                            field_4_slug_make_from='szTitle', model=TbItem)
+        # ========== Обработка полей управляющих типографом и переносами ==========
         # Получаем данные из формы (поля формы)
         form_data: dict = super().clean()
-        # ========== Обработка полей управляющих URL-слагами ==========
-        if self.instance.pk is None or form_data['jOldSlugs'] is None:
-            # если это новая запись или старых URL-слагов нет -- создадим список
-            form_data['jOldSlugs'] = []
-        if form_data['szSlug'] is None or re.sub(r"\s+", "", form_data['szSlug']) == "":
-            # если в форме не указали URL-слаг, то создадим его из названия
-            created_slug = pytils.translit.slugify(form_data['szTitle']).lower()
-            # проверим уникальность созданного URL-слага
-            while TbItem.objects.filter(szSlug=created_slug[:SLUG_LENGTH]).count() != 0:
-                f"{created_slug[:SLUG_LENGTH-3]}-{int(random.uniform(0, 255)):x}"
-            form_data['szSlug'] = created_slug
-        if self.instance.pk is not None and form_data['szSlug'] != TbItem.objects.get(id=self.instance.pk).szSlug:
-            # если это редактирование существующей записи и URL-слаг изменился, то добавим его в старые URL-слаги
-            if TbItem.objects.get(id=self.instance.pk).szSlug not in form_data['jOldSlugs']:
-                form_data['jOldSlugs'].append(TbItem.objects.get(id=self.instance.pk).szSlug)
-            # если новый URL-слаг уже есть в старых URL-слагах, то удалим его из старых URL-слагов
-            if form_data['szSlug'] in form_data['jOldSlugs']:
-                form_data['jOldSlugs'].remove(form_data['szSlug'])
-        # ========== Обработка полей управляющих типографом и переносами ==========
         if form_data['typograf'] != 0:
             # если типограф включен, то типографируем
             # (0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
