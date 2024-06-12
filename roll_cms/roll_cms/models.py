@@ -168,7 +168,7 @@ class TbRoll(models.Model):
     )
     bRollPublish = models.BooleanField(
         default=True, db_index=True,
-        verbose_name="Вкл./Выкл. ролл",
+        verbose_name="Опуб...",
         help_text="Публиковать ролл через URN (URL-слаг). Если опубликовано, то и ролл "
                   "можно будет адресовать по URL </i>/block/roll/content</i> и все "
                   "связанные с ним единицы контента (и производные роллы в будущем). "
@@ -189,7 +189,7 @@ class TbRoll(models.Model):
         default=None, on_delete=models.DO_NOTHING,
         related_name="kContentTemplate",  # из-за конфликта "магии" Джанго иначе не работает из-за парных ForeignKey
         db_constraint=False,
-        verbose_name="<i>-Шаблон (по умолчанию)",
+        verbose_name="<i>-Шаблон",
         help_text="Шаблон (по умолчанию для элементов) который будет использован<br />"
                   "для типовых элементов контента в этом ролле.<br />"
                   "<b style=\"color:red\">ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b></br>"
@@ -283,7 +283,7 @@ class TbItem(models.Model):
     # ============================================================
     kRoll = models.ManyToManyField(
         to="roll_cms.TbRoll",
-        # default=None, blank=True, null=True,
+        default=None, blank=True,       # null=True,    # null -- не имеет смысла для ManyToManyField
         # through="roll_cms.TbItem2Roll", # возможно стоит сделать через промежуточную спец-таблицу с сортером (меню)
         verbose_name=u"Ролл"
     )
