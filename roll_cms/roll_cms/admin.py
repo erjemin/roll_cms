@@ -58,6 +58,7 @@ class TemplateAdminForm(forms.ModelForm):
             'szJinjaCode': forms.Textarea(attrs={'class': 'code_editor'})
         }
 
+
 # -- Админка шаблонов
 @admin.register(TbTemplate)
 class AdminTemplate(admin.ModelAdmin):
@@ -96,33 +97,53 @@ class AdminTemplate(admin.ModelAdmin):
         return ['szFileName', 'szDescription', 'szJinjaCode', 'szVar']
 
 
+# -- Типограф (поля для всех моделей, где нужен типограф).
+# ТОЛЬКО ФИКТИВНЫЕ-ПОЛЯ, КОТОРЫЕ НУЖНЫЕ ДЛЯ ТИПОГРАФИРОВАНИЯ
+class TypografAdminForm(forms.ModelForm):
+    def __init__(self, *args, typograf_choices=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if typograf_choices is not None:
+            # если в форме переданы варианты для поля типографа 'typograf', то используем их
+            self.fields['typograf'].choices = typograf_choices
+
+    typograf = forms.ChoiceField(label='Типограф', required=False, initial=0,
+                                 help_text='<div style=\'margin-right:6em;\'>Обработать через встроенный'
+                                           '<a href="http://mdash.ru" target="_blank">Типограф Муравьёва 3.5</a></div>'
+                                           '<small><b>ХОРОШИЙ ТИПОГРАФ НО ИНОГДА ГЛЮЧИТ!</b><br/>'
+                                           '&laquo;приклеивает&raquo; союзы и числительные, поддерживает неразрывные'
+                                           '<br/>конструкции, замена тире, очень <b>навороченная расстановка<br/>'
+                                           'кавычек</b> (с горизонтальным смещением, как при книжной<br/>'
+                                           'типографике, идеально для цитат и прямой речи), расставляет<br/>'
+                                           'абзацы (кроме заголовков) и т.п.</small>')
+
+    hang_punct = forms.ChoiceField(label='Висячая пунктуация', required=False, initial=False,
+                                   choices=[(0, 'Выключена'), (1, 'C помощью встроенного CSS'), (2, 'C помощью Class')],
+                                   help_text='Висячая пунктуация — это способ<br/>расположения кавычек и скобок<br/>'
+                                             'при левостороннем выравнивании (флажком).')
+
+    hyp = forms.ChoiceField(label='Переносы', required=False, initial='off',
+                            choices=[(0, 'Выключены'), (15, 'Слова ≥ 14 символов'), (8, 'Слова ≥ 8 символов')],
+                            help_text='<div style=\'margin-right:15em;\'>Включить автоматические переносы<br />'
+                                      'русскоязычных слов по слогам)</div>')
+
+    mnemo = forms.ChoiceField(label="Мнемокод", required=False, initial=2,
+                              choices=[(0, 'Все удалить'), (1, 'Мнемокод'), (2, 'Юникод')],
+                              help_text='Способ кодирования спецсимволов.<br /><small>'
+                                        'Мнемокод: &amp;laquo; &amp;copy; &amp;raquo; &amp;hellip; — совместим</br>со'
+                                        ' старыми браузерами; Юникод: « © » … — компактнее.</br>'
+                                        '<b style=\'color:red;\'>Все удалить — так же удалит все переносы.</b></small>')
+
+    class Meta:
+        abstract = True
+
+
 # -- РОЛЛЫ [r]
 # -- Форма для админки роллов с codemirror и дополнительными полями типографа и переносов
-class RollAdminForm(forms.ModelForm):
-    # добавляем поле для типографа (поле фиктивное, его нет в модели и БД, но его обработка происходит в pre_save)
-    typograf = forms.BooleanField(label='Типограф', required=False, initial=False,
-                                  help_text='Обработать через встроенный <a href="http://mdash.ru" target="_blank">'
-                                            'Типограф Муравьёва 3.5</a><br />'
-                                            '<small><b>ХОРОШИЙ ТИПОГРАФ, ИНОГДА ДАЖЕ СЛИШКОМ. '
-                                            'ИНОГДА ГЛЮЧИТ! ПРОВЕРЯЙТЕ РЕЗУЛЬТАТ!!</b><br />'
-                                            '&laquo;приклеивает&raquo; союзы и числительные, поддерживает неразрывные'
-                                            'конструкции, замена тире, очень <b>навороченная расстановка кавы&shy;'
-                                            'чек</b> (с горизонтальным смещением, как при книжной типографике,'
-                                            'идеально для цитат и прямой речи), расставляет абзацы (кроме '
-                                            'заголовков) и т.п.</small>')
-    hyphenation = forms.BooleanField(label='Переносы', required=False, initial=False,
-                                     help_text='Включить автоматические переносы    <br />'
-                                               'русскоязычных слов по слогам<br /><small>'
-                                               'В словах с расставленными переносами<br />'
-                                               '(повторно) не работает</small>')
-    hyphenation_len = forms.IntegerField(label='Длина слова', required=False, initial=14,
-                                         help_text='Минимальная длина слова<br />'
-                                                   'для переноса. <small>Переносы расстав-<br />'
-                                                   'ляются только в словах длиннее</small>.')
-    use_shy_for_hyphenation = forms.BooleanField(label='Использовать &shy;', required=False, initial=False,
-                                                 help_text='Использовать &amp;shy;<br />'
-                                                           '<small>Иначе через юникод-символ</small>')
-
+class RollAdminForm(TypografAdminForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, typograf_choices=[(0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
+                                                  (3, 'Только текст'), (4, 'Заголовки и анонс'), (5, 'Заголовки и текст'),
+                                                  (6, 'Анонс и текст'), (7, 'Всё')], **kwargs)
     def clean(self):
         # Переопределим валидацию формы TbRoll-адмики и, заодно, переопределим значения некоторых полей.
         # Получаем данные из формы (поля формы)
@@ -231,6 +252,7 @@ class AdminRoll(admin.ModelAdmin):
     list_display_links = ('id', 'szRollName')
     search_fields = ['szRollName', 'szRollTitle', 'szRollText']
     list_editable = ('bRollPublish',)
+    list_filter = ('bRollPublish',)
     # Настройка страницы редактирования
     fieldsets = [
         (None, {
@@ -251,7 +273,7 @@ class AdminRoll(admin.ModelAdmin):
             'fields': ('szRollTitle', 'kRollImgPreview', 'szRollText',),
         }),
         ('ТИПОГРАФ И ПЕРЕНОСЫ', {
-            'fields': ('typograf', ('hyphenation', 'hyphenation_len', 'use_shy_for_hyphenation'),),
+            'fields': (('typograf', 'hang_punct',), ('hyp', 'mnemo',),),
             'classes': ('collapse',),
         }),
     ]
@@ -262,37 +284,11 @@ class AdminRoll(admin.ModelAdmin):
 
 # -- Элементы <i>
 # -- Форма для админки элементов с codemirror и дополнительными полями типографа и переносов
-class ItemAdminForm(forms.ModelForm):
-    # добавляем поле для типографа (поле фиктивное, его нет в модели и БД, но его обработка происходит в pre_save)
-    typograf = forms.ChoiceField(label='Типограф', required=False, initial=0,
-                                 choices=[(0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
-                                          (3, 'Только текст'), (4, 'Заголовки и анонс'), (5, 'Заголовки и текст'),
-                                          (6, 'Анонс и текст'), (7, 'Всё')],
-                                 help_text='<div style=\'margin-right:6em;\'>Обработать через встроенный'
-                                           '<a href="http://mdash.ru" target="_blank">Типограф Муравьёва 3.5</a></div>'
-                                           '<small><b>ХОРОШИЙ ТИПОГРАФ НО ИНОГДА ГЛЮЧИТ!</b><br/>'
-                                           '&laquo;приклеивает&raquo; союзы и числительные, поддерживает неразрывные'
-                                           '<br/>конструкции, замена тире, очень <b>навороченная расстановка<br/>'
-                                           'кавычек</b> (с горизонтальным смещением, как при книжной<br/>'
-                                           'типографике, идеально для цитат и прямой речи), расставляет<br/>'
-                                           'абзацы (кроме заголовков) и т.п.</small>')
-
-    hang_punct = forms.ChoiceField(label='Висячая пунктуация', required=False, initial=False,
-                                   choices=[(0, 'Выключена'), (1, 'C помощью встроенного CSS'), (2, 'C помощью Class')],
-                                   help_text='Висячая пунктуация — это способ<br/>расположения кавычек и скобок<br/>'
-                                             'при левостороннем выравнивании (флажком).')
-
-    hyp = forms.ChoiceField(label='Переносы', required=False, initial='off',
-                            choices=[(0, 'Выключены'), (15, 'Слова ≥ 14 символов'), (8, 'Слова ≥ 8 символов')],
-                            help_text='<div style=\'margin-right:15em;\'>Включить автоматические переносы<br />'
-                                      'русскоязычных слов по слогам)</div>')
-
-    mnemo = forms.ChoiceField(label="Мнемокод", required=False, initial=2,
-                              choices=[(0, 'Все удалить'), (1, 'Мнемокод'), (2, 'Юникод')],
-                              help_text='Способ кодирования спецсимволов.<br /><small>'
-                                        'Мнемокод: &amp;laquo; &amp;copy; &amp;raquo; &amp;hellip; — совместим</br>со'
-                                        ' старыми браузерами; Юникод: « © » … — компактнее.</br>'
-                                        '<b style=\'color:red;\'>Все удалить — так же удалит все переносы.</b></small>')
+class ItemAdminForm(TypografAdminForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, typograf_choices=[(0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
+                                                  (3, 'Только текст'), (4, 'Заголовки и анонс'), (5, 'Заголовки и текст'),
+                                                  (6, 'Анонс и текст'), (7, 'Всё')], **kwargs)
 
     def clean(self):
         # Переопределим валидацию формы TbItem-адмики и, заодно, переопределим значения некоторых полей.
@@ -317,9 +313,17 @@ class ItemAdminForm(forms.ModelForm):
             if form_data['szSlug'] in form_data['jOldSlugs']:
                 form_data['jOldSlugs'].remove(form_data['szSlug'])
         # ========== Обработка полей управляющих типографом и переносами ==========
+        if form_data['typograf'] != 0:
+            # если типограф включен, то типографируем
+            # (0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
+            # (3, 'Только текст'), (4, 'Заголовки и анонс'), (5, 'Заголовки и текст'),
+            # (6, 'Анонс и текст'), (7, 'Всё')
+            # if form_data['typograf'] in [1, 4, 5, 7]:
+            #     form_data['szTitle'] = EMT.EMTypograph(form_data['szTitle']).apply()
+            pass
 
     class Meta:
-        model = TbRoll
+        model = TbItem
         fields = "__all__"
         widgets = {
             'jOldSlugs': forms.Textarea(attrs={'class': 'json_editor1'}),
@@ -349,11 +353,17 @@ class AdminItem(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         return super().get_form(request, obj, **kwargs)
 
+    # Добавляем поле со списком роллов в которые включен элемент
+    def roll_list(self, obj):
+        return ", ".join([roll.szRollName for roll in obj.kRoll.all()])
+    roll_list.short_description = 'Роллы'
+
     form = ItemAdminForm
-    list_display = ('id', 'szTitle', 'szSlug', 'iSort', 'tdStart', 'tdStop', 'bPublish')
-    list_display_links = ('id', 'szTitle', 'szSlug')
+    list_display = ('id', 'szTitle', 'roll_list', 'iSort', 'tdStart', 'bPublish')
+    list_display_links = ('id', 'szTitle', 'roll_list')
     search_fields = ['szTitle', 'szNote', 'szText']
     list_editable = ('bPublish',)
+    list_filter = ('bPublish', 'kRoll__szRollName',)
     # Настройка страницы редактирования
     fieldsets = [
         (None, {
