@@ -8,6 +8,7 @@ from django.forms import TextInput, Textarea
 from roll_cms.models import TbTemplate, TbRoll, TbItem
 from roll_cms.settings import *
 from roll_cms.add_function import hyphenation_in_text, process_slug_fields, process_typograf_fields
+import html
 import roll_cms.EMT as EMT
 
 # Стилевые настройки для codemirror (единые для всех разделов админки)
@@ -286,9 +287,13 @@ class AdminItem(admin.ModelAdmin):
         return ", ".join([roll.szRollName for roll in obj.kRoll.all()])
     roll_list.short_description = 'Роллы'
 
+    # Изменяем вывод поля szTitle для list_display (чтобы не было мнемокода. если он там есть)
+    def title_wo_mnemo(self, obj):
+        return html.unescape(obj.szTitle)
+
     form = ItemAdminForm
-    list_display = ('id', 'szTitle', 'roll_list', 'iSort', 'tdStart', 'bPublish')
-    list_display_links = ('id', 'szTitle', 'roll_list')
+    list_display = ('id', 'title_wo_mnemo', 'roll_list', 'iSort', 'tdStart', 'bPublish')
+    list_display_links = ('id', 'title_wo_mnemo', 'roll_list')
     search_fields = ['szTitle', 'szNote', 'szText']
     list_editable = ('bPublish',)
     list_filter = ('bPublish', 'kRoll__szRollName',)
