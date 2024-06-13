@@ -197,16 +197,18 @@ def process_typograf_fields(form: forms.ModelForm, fields_4_typograf: list):
         if form_data['mnemo'] == '1':
             # очистить от HTML и странного мнемокода
             # TODO: исправить. Заменяет на мнемокод весь HTML (типа &lt;p&gt;Hello World&lt;/p&gt;)
+            #       Кроме того, html.escape() преобразует только следующие символы: &, <, >, " и '.
             form_data[field] = html.escape(form_data[field])
             sep = '&shy;'
             print('-> ', form_data[field])
         # ОБРАБОТКА ПЕРЕНОСОВ
         if form_data['hyp'] == '-1':
             # Удаление переносов
-            form_data[field] = form_data[field].replace('­', '').replace('&shy;', ' ')
+            form_data[field] = form_data[field].replace('­', '').replace('&shy;', '')
             print('-> ', form_data[field])
         elif form_data['hyp'] != '0':
             # Расстановка переносов
+            # ВАЖНО: старые (расставленные ранее) переносы не удаляются. Хорошо ли это?
             form_data[field] = hyphenation_in_text(form_data[field], int(form_data['hyp']), sep)
             print('-> ', form_data[field])
         # form_data[field] = html.unescape(form_data[field])
