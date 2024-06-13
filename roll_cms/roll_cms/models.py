@@ -277,10 +277,29 @@ class TbRoll(models.Model):
 
 
 class TbItem(models.Model):
-    # ============================================================
-    # ТАБЛИЦА TbItem (единицы, элемент контента): новости, записи в блоке, элементы списков и лент,
-    # баннеры и всё что угодно...
-    # ============================================================
+    """ Элементы контента. Таблица в БД `roll_cms_tbitem` """
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
+    # Поле               | Назначение                           | Тип          | NULL | DEFAULT | Extra          |
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
+    # id                 | primary key (pk)                     | bigint(20)   | NOT  |         | auto_increment |
+    # kRoll_id           | Ролл (лента) в которую вкл. элемент  | bigint(20)   | ---  | NULL    | foreign key    |
+    # bPublish           | Вкл./Выкл. элемент (опубликован)     | tinyint(1)   | NOT  | 1       | index          |
+    # tdStart            | Дата публикации элемента             | datetime(6)  | NOT  | NOW()   | index          |
+    # tdStop             | Дата снятия элемента                 | datetime(6)  | YES  | NULL    | index          |
+    # iSort              | Сортировка элемента в ролле          | smallint     | YES  | 0       | index          |
+    # szTitle            | Заголовок элемента                   | varchar(768) | YES  | ""      |                |
+    # kImg_id            | Картинка-превью элемента             | int(11)      | YES  | NULL    | foreign key    |
+    # szNote             | Анонс элемента                       | text         | YES  | ""      |                |
+    # szText             | Текст элемента                       | text         | YES  | ""      |                |
+    # szSeoKeywords      | Keywords (SEO)                       | varchar(120) | YES  | ""      |                |
+    # szSeoDescription   | Description (SEO)                    | varchar(160) | YES  | ""      |                |
+    # szSlug             | URL-слаг элемента                    | varchar(155) | YES  | ""      | unique         |
+    # jOldSlugs          | Старые URL-слаги элемента            | json         | YES  | NULL    |                |
+    # jAtt               | Аттрибуты и таги (вложения) элемента | json         | YES  | NULL    |                |
+    # kTemplate_id       | Шаблон (спец-шаблон) элемента        | bigint(20)   | YES  | NULL    | foreign key    |
+    # dtCreate           | Дата создания элемента               | datetime(6)  | NOT  | NOW()   | index          |
+    # dtTimeStamp        | Штамп времени (дата изменения)       | datetime(6)  | NOT  | NOW()   | index          |
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
     kRoll = models.ManyToManyField(
         to="roll_cms.TbRoll",
         default=None, blank=True,       # null=True,    # null -- не имеет смысла для ManyToManyField
