@@ -7,11 +7,8 @@ from django.forms import TextInput, Textarea
 # from codemirror import CodeMirrorTextarea
 from roll_cms.models import TbTemplate, TbRoll, TbItem
 from roll_cms.settings import *
-from roll_cms.add_function import hyphenation_in_text, process_slug_fields
+from roll_cms.add_function import hyphenation_in_text, process_slug_fields, process_typograf_fields
 import roll_cms.EMT as EMT
-import pytils
-import random
-import re
 
 # Стилевые настройки для codemirror (единые для всех разделов админки)
 cm_css = {'all': (
@@ -121,14 +118,16 @@ class TypografAdminForm(forms.ModelForm):
                                              'при левостороннем выравнивании (флажком).')
 
     hyp = forms.ChoiceField(label='Переносы', required=False, initial='off',
-                            choices=[(0, 'Выключены'), (15, 'Слова ≥ 14 символов'), (8, 'Слова ≥ 8 символов')],
+                            choices=[(0, 'Оставить как есть'), (15, 'Слова ≥ 14 символов'), (8, 'Слова ≥ 8 символов'),
+                                     (-1, 'Очистить от переносов'),],
                             help_text='<div style=\'margin-right:15em;\'>Включить автоматические переносы<br />'
                                       'русскоязычных слов по слогам)</div>')
 
     mnemo = forms.ChoiceField(label="Спец.символы", required=False, initial=2,
-                              choices=[(1, 'Мнемокод'), (2, 'Юникод'), (3, 'Удалить странный мнемокод'),
+                              choices=[(1, 'Мнемокод'), (2, 'Юникод'),
+                                       ## (3, 'Удалить странный мнемокод'),
                                        (4, 'Сделать <p> и <br> из CR и CRLF (\\n и \\n\\r)'),
-                                       (5, 'Очистить от HTML и странного мнемокода'),],
+                                       (5, 'Очистить от HTML и мнемокода'),],
                               help_text='Способ кодирования спецсимволов.<br /><small>'
                                         'Мнемокод: &amp;laquo; &amp;copy; &amp;raquo; &amp;hellip; — совместим</br>со'
                                         ' старыми браузерами; Юникод: « © » … — компактнее.</br>'
@@ -142,9 +141,8 @@ class TypografAdminForm(forms.ModelForm):
 # -- Форма для админки роллов с codemirror и дополнительными полями типографа и переносов
 class RollAdminForm(TypografAdminForm):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, typograf_choices=[(0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
-                                                  (3, 'Только текст'), (4, 'Заголовки и анонс'), (5, 'Заголовки и текст'),
-                                                  (6, 'Анонс и текст'), (7, 'Всё')], **kwargs)
+        super().__init__(*args, typograf_choices=[(0, 'Выключен'), (1, 'Только заголовок'),
+                                                  (3, 'Только текст'), (5, 'Всё (Заголовок и текст)'),], **kwargs)
 
     def clean(self):
         # Переопределим валидацию формы TbRoll-адмики и, заодно, переопределим значения некоторых полей.
@@ -154,6 +152,13 @@ class RollAdminForm(TypografAdminForm):
         # ========== Обработка полей управляющих типографом и переносами ==========
         # Получаем данные из формы (поля формы)
         form_data: dict = super().clean()
+        field_to_typograf = []
+        if form_data['typograf'] in ('1', '5'):
+            field_to_typograf = [*field_to_typograf, 'szRollTitle']
+        if form_data['typograf'] in ('3', '5'):
+            field_to_typograf = [*field_to_typograf, 'szRollText']
+        if field_to_typograf:
+            process_typograf_fields(self, field_to_typograf)
 
     class Meta:
         model = TbRoll
@@ -183,47 +188,6 @@ class AdminRoll(admin.ModelAdmin):
         return super().get_form(request, obj, **kwargs)
 
     # переопределяем метод сохранения модели
-    def save_model(self, request, obj, form, change):
-        # TODO: НЕ РАБОТАЕТ!! ПЕРЕНЕСТИ В RollAdminForm.clean() ... и улучшить
-        # Проверяем необходимость расстановки переносов и расставляем
-        try:
-            if form.cleaned_data['hyphenation'] and int(form.cleaned_data['hyphenation_len']) > 6:
-                # если нажата галочка "Переносы"
-                obj.szRollTitle = hyphenation_in_text(obj.szRollTitle, int(form.cleaned_data["hyphenation_len"]))
-                if form.cleaned_data['use_shy_for_hyphenation']:
-                    obj.szRollTitle = obj.szRollTitle.replace('­', '&shy;')
-                else:
-                    obj.szRollTitle = obj.szRollTitle.replace('&shy;', '­')
-                obj.szRollText = hyphenation_in_text(obj.szRollText, int(form.cleaned_data["hyphenation_len"]))
-                if form.cleaned_data['use_shy_for_hyphenation']:
-                    obj.szRollText = obj.szRollText.replace('­', '&shy;')
-                else:
-                    obj.szRollText = obj.szRollText.replace('&shy;', '­')
-        except (KeyError, TypeError, ValueError):
-            pass
-
-        # Проверяем включен ли типограф и типографируем
-        try:
-            if form.cleaned_data['typograf']:
-                # если нажата галочка "Типограф", то типографируем
-                # https://habr.com/ru/articles/303608/
-                # https://github.com/f213/richtypo.py и https://pypi.org/project/richtypo/
-                # https://maks.live/articles/python/eto-tipograf/
-
-                emt_title = EMT.EMTypograph()
-                emt_title.setup({'Text.paragraphs': 'off'})
-                emt_title.set_text(obj.szRollTitle)
-                obj.szRollTitle = emt_title.apply()
-                emt_roll_text = EMT.EMTypograph()
-                emt_roll_text.setup({'Text.paragraphs': 'off'})
-                emt_roll_text.set_text(obj.szRollText)
-                emt_roll_text.set_tag_layout(layout=EMT.LAYOUT_STYLE)
-                obj.szRollText = emt_roll_text.apply()
-        except KeyError:
-            pass
-
-        obj.save()
-
     form = RollAdminForm
     list_display = ('id', 'szRollName', 'kRollTemplate', 'kDefaultContentTemplate', 'iRollItemInPage',
                     'szRollSortRule', 'bRollPublish')
@@ -264,7 +228,7 @@ class AdminRoll(admin.ModelAdmin):
 # -- Форма для админки элементов с codemirror и дополнительными полями типографа и переносов
 class ItemAdminForm(TypografAdminForm):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, typograf_choices=[(0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
+        super().__init__(*args, typograf_choices=[(0, 'Выключен'), (1, 'Только заголовок'), (2, 'Только анонс'),
                                                   (3, 'Только текст'), (4, 'Заголовки и анонс'), (5, 'Заголовки и текст'),
                                                   (6, 'Анонс и текст'), (7, 'Всё')], **kwargs)
 
@@ -276,14 +240,15 @@ class ItemAdminForm(TypografAdminForm):
         # ========== Обработка полей управляющих типографом и переносами ==========
         # Получаем данные из формы (поля формы)
         form_data: dict = super().clean()
-        if form_data['typograf'] != 0:
-            # если типограф включен, то типографируем
-            # (0, 'Выключен'), (1, 'Только заголовки'), (2, 'Только анонс'),
-            # (3, 'Только текст'), (4, 'Заголовки и анонс'), (5, 'Заголовки и текст'),
-            # (6, 'Анонс и текст'), (7, 'Всё')
-            # if form_data['typograf'] in [1, 4, 5, 7]:
-            #     form_data['szTitle'] = EMT.EMTypograph(form_data['szTitle']).apply()
-            pass
+        field_to_typograf = []
+        if form_data['typograf'] in ('1', '4', '5', '7'):
+            field_to_typograf = [*field_to_typograf, 'szTitle']
+        if form_data['typograf'] in ('2', '4', '6', '7'):
+            field_to_typograf = [*field_to_typograf, 'szNote']
+        if form_data['typograf'] in ('3', '5', '6', '7'):
+            field_to_typograf = [*field_to_typograf, 'szText']
+        if field_to_typograf:
+            process_typograf_fields(self, field_to_typograf)
 
     class Meta:
         model = TbItem
