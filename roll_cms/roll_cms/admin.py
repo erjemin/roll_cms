@@ -5,7 +5,7 @@ from django.db import models
 from django.forms import TextInput, Textarea
 # from ckeditor.widgets import CKEditorWidget
 # from codemirror import CodeMirrorTextarea
-from roll_cms.models import TbTemplate, TbRoll, TbItem
+from roll_cms.models import TbTemplate, TbRoll, TbItem, TbMenu
 from roll_cms.settings import *
 from roll_cms.add_function import hyphenation_in_text, process_slug_fields, process_typograf_fields
 import html
@@ -333,3 +333,40 @@ class AdminItem(admin.ModelAdmin):
     actions_on_top = False
     actions_on_bottom = True
 
+
+# -- Меню [M]
+# -- Форма для админки управления меню
+class MenuAdminForm(forms.ModelForm):
+    # фиктивное поле для управления созданием кеш-шаблонов
+    do_cash = forms.BooleanField(label='Создать/Обновить кеш-шаблон', required=False,
+                                 help_text='Создать кеш-шаблон для этого меню')
+
+    def clean(self):
+        # Проверим: задан ли кэш-шаблон? Если do_cash=True, но кэш-шаблона нет, то подними исключение в админке
+        form_data: dict = super().clean()
+        if form_data['do_cash'] and form_data['kMenuTemplateTo'] is None:
+            raise forms.ValidationError('Нельзя создавать кеш-шаблон, если не указано куда его создавать!')
+
+    class Meta:
+        model = TbMenu
+        fields = '__all__'
+
+
+@admin.register(TbMenu)
+class AdminMenu(admin.ModelAdmin):
+    form = MenuAdminForm
+    list_display = ('id', 'szMenuName', 'kMenuTemplateFrom', 'kMenuTemplateTo')
+    list_display_links = ('id', 'szMenuName', 'kMenuTemplateFrom', 'kMenuTemplateTo')
+    search_fields = ['szMenuName',]
+    # Настройка страницы редактирования
+    fieldsets = [
+        (None, {
+            'fields': ('szMenuName',),
+        }),
+        ('ШАБЛОНЫ', {
+            'fields': (('do_cash',), ('kMenuTemplateFrom', 'kMenuTemplateTo',),),
+        }),
+    ]
+    empty_value_display = '<b style=\'color:red;\'>—//—</b>'
+    actions_on_top = False
+    actions_on_bottom = True

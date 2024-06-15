@@ -428,3 +428,55 @@ class TbItem(models.Model):
         verbose_name_plural = " <i> Элементы контента"
         ordering = ["iSort", "-tdStart", ]
 
+
+class TbMenu(models.Model):
+    """ Меню. Таблица в БД `roll_cms_tbmenu` """
+    szMenuName = models.CharField(
+        max_length=32, blank=False, null=False, db_index=True, unique=True,
+        verbose_name="Название",
+        help_text="Техническое название меню (для админки)"
+    )
+    kMenuTemplateFrom = models.ForeignKey(
+        to="roll_cms.TbTemplate", blank=True, null=True,
+        default=None, on_delete=models.DO_NOTHING,
+        related_name="kMenuTemplate_From",  # из-за конфликта "магии" Джанго иначе не работает из-за парных ForeignKey
+        db_constraint=False,
+        verbose_name="Шаблон-Источник",
+        help_text="Шаблон отвечающий за отображение меню.<br />"
+                  "<b style=\"color:red\">ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b>"
+    )
+    kMenuTemplateTo = models.ForeignKey(
+        to="roll_cms.TbTemplate", blank=True, null=True,
+        default=None, on_delete=models.DO_NOTHING,
+        db_constraint=False,
+        related_name="kMenuTemplate_Cash",  # из-за конфликта "магии" Джанго иначе не работает из-за парных ForeignKey
+        verbose_name="Кэш-Шаблон",
+        help_text="Шаблон, который станет кешем (обновляется из шаблона-источника).<br />"
+                  "Если оставить пустым, то кеширование не будет производиться.<br />"
+                  "<b style=\"color:red\">ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b>"
+    )
+    dtMenuCreate = models.DateTimeField(
+        auto_now_add=True,  # надо указать False при миграции, после вернуть в True
+        # для выполнения миграций нужно добавлять default, а после она не нужна
+        # default=datetime.now(pytz.timezone(settings.TIME_ZONE)),
+        db_index=True,
+        verbose_name="Дата Создания"
+    )
+    dtMenuTimeStamp = models.DateTimeField(
+        auto_now=True,  # надо указать False при миграции, после вернуть в True
+        # для выполнения миграций нужно добавлять default, а после она не нужна
+        # default=datetime.now(pytz.timezone(settings.TIME_ZONE)),
+        db_index=True,
+        verbose_name="Штамп времени"
+    )
+
+    def __unicode__(self):
+        return f" ({self.id:02x}) {self.szMenuName}"
+
+    def __str__(self):
+        return self.__unicode__()
+
+    class Meta:
+        verbose_name = " [m] Меню"
+        verbose_name_plural = " [m] Меню"
+        ordering = ["id", ]
