@@ -136,7 +136,7 @@ class TbRoll(models.Model):
     # szRollTitle        | Заголовок ролла                      | varchar(255) | YES  | ""      | index          |
     # kRollImgPreview_id | Картинка-превью ролла                | int(11)      | YES  | NULL    | foreign key    |
     # szRollText         | Тизер-текст ролла                    | text         | YES  | ""      |                |
-    # szRollRedirectTo   | Перенаправление ролла                | varchar(500) | YES  | ""      |                |
+    # szRollUrlTo        | Url (например, редирект ролла)       | varchar(200) | YES  | ""      |                |
     # dtRollCreate       | Дата создания ролла                  | datetime(6)  | NOT  | NOW()   | index          |
     # dtRollTimeStamp    | Штамп времени (дата изменения ролла) | datetime(6)  | NOT  | NOW()   | index          |
     # -------------------+--------------------------------------+--------------+------+---------+----------------+
@@ -192,7 +192,7 @@ class TbRoll(models.Model):
         verbose_name="<i>-Шаблон",
         help_text="Шаблон (по умолчанию для элементов) который будет использован<br />"
                   "для типовых элементов контента в этом ролле.<br />"
-                  "<b style=\"color:red\">ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b></br>"
+                  "<b style=\"color:red\">ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b><br />"
                   "<small>Для любой единицы контента шаблон можно будет<br />"
                   "переназначить (например, если вы делаете контент-страницы<br>"
                   "с уникальным дизайном).</small>"
@@ -238,12 +238,12 @@ class TbRoll(models.Model):
     szRollText = models.TextField(
         default="", null=True, blank=True,
         verbose_name="Текст ролла (тизер)",
-        help_text="Текст ролла (пояснения перед новостной лентой, блогом и пр.)</br>"
+        help_text="Текст ролла (пояснения перед новостной лентой, блогом и пр.)<br />"
                   "<small>разрешен HTML-код и может быть обработан типографом (если типограф включен)</small>"
     )
-    szRollRedirectTo = models.CharField(
-        max_length=500, default="", blank=True, null=True,
-        verbose_name="Редирект на",
+    szRollUrlTo = models.URLField(
+        default="", blank=True, null=True,
+        verbose_name="URL на",
         help_text="Иногда нужно, чтобы ролл (пункт меню) был редиректом на другой URL, например когда"
                   "ролл снят с публикации (выключен) и нужно перенаправить трафик.<br/>"
                   "<small>допустимы как внутренние URL-ссылки от корня сайта \"/……/……\","
@@ -287,6 +287,7 @@ class TbItem(models.Model):
     # tdStart            | Дата публикации элемента             | datetime(6)  | NOT  | NOW()   | index          |
     # tdStop             | Дата снятия элемента                 | datetime(6)  | YES  | NULL    | index          |
     # iSort              | Сортировка элемента в ролле          | smallint     | YES  | 0       | index          |
+    # iCount             | Счётчик просмотров элемента          | bigint(20)   | YES  | 0       | index          |
     # szTitle            | Заголовок элемента                   | varchar(768) | YES  | ""      |                |
     # kImg_id            | Картинка-превью элемента             | int(11)      | YES  | NULL    | foreign key    |
     # szNote             | Анонс элемента                       | text         | YES  | ""      |                |
@@ -295,6 +296,7 @@ class TbItem(models.Model):
     # szSeoDescription   | Description (SEO)                    | varchar(160) | YES  | ""      |                |
     # szSlug             | URL-слаг элемента                    | varchar(155) | YES  | ""      | unique         |
     # jOldSlugs          | Старые URL-слаги элемента            | json         | YES  | NULL    |                |
+    # szUrlTo            | URL на внешний ресурс                | varchar(200) | YES  | ""      |                |
     # jAtt               | Аттрибуты и таги (вложения) элемента | json         | YES  | NULL    |                |
     # kTemplate_id       | Шаблон (спец-шаблон) элемента        | bigint(20)   | YES  | NULL    | foreign key    |
     # dtCreate           | Дата создания элемента               | datetime(6)  | NOT  | NOW()   | index          |
@@ -303,8 +305,10 @@ class TbItem(models.Model):
     kRoll = models.ManyToManyField(
         to="roll_cms.TbRoll",
         default=None, blank=True,       # null=True,    # null -- не имеет смысла для ManyToManyField
+        related_name="in_roll",
         # through="roll_cms.TbItem2Roll", # возможно стоит сделать через промежуточную спец-таблицу с сортером (меню)
-        verbose_name=u"Ролл"
+        verbose_name=u"Ролл",
+        help_text="Ролл (лента) в которую включен элемент. Может быть несколько роллов, в которые включен элемент."
     )
     bPublish = models.BooleanField(
         default=True, db_index=True,
@@ -328,6 +332,11 @@ class TbItem(models.Model):
         help_text="Целое число.<br /><small>Может использоваться для сортировки<br/>элементов в ролле. Зависит от<br/>"
                   "настроек правил фильтрации в ролле.</small>"
     )
+    iCount = models.PositiveBigIntegerField(
+        default=0, db_index=True,
+        verbose_name="Счётчик",
+        help_text="Целое число.<br /><small>Может использоваться для подсчёта<br/>количества просмотров элемента.</small>"
+    )
     szTitle = models.CharField(
         max_length=768, default="", blank=False, null=False,
         verbose_name="Заголовок",
@@ -346,13 +355,13 @@ class TbItem(models.Model):
     szNote = models.TextField(
         default="", null=True, blank=True,
         verbose_name="Анонс",
-        help_text="Анонс/Тизер/Заметка</br>"
+        help_text="Анонс/Тизер/Заметка<br />"
                   "<small>разрешен HTML-код и может быть обработан типографом (если типограф включен)</small>"
     )
     szText = models.TextField(
         default="", null=True, blank=True,
         verbose_name="Текст",
-        help_text="Текст/Контент/Запись</br>"
+        help_text="Текст/Контент/Запись<br />"
                   "<small>разрешен HTML-код и может быть обработан типографом (если типограф включен)</small>"
     )
     szSeoKeywords = models.CharField(
@@ -387,6 +396,24 @@ class TbItem(models.Model):
                   " лишнюю нагрузку... Редирект будет производится с кодом 301 (постоянный редирект)</small><br />"
                   "<b style=\"color:red\">Список создается автоматически, но доступен для редактирования"
                   " (например, для удаления слагов, редиректы для которых больше не требуется)</b>"
+    )
+    szUrlTo = models.URLField(
+        default="", blank=True, null=True,
+        verbose_name="URL на",
+        help_text="URL-ссылка на внешний ресурс (например для создания рекламных баннеров).<br />"
+                  "<small>допустимы как внутренние URL-ссылки от корня сайта \"/……/……\","
+                  " так и внешние URI-ссылки \"http://……/……\"</small>"
+    )
+    kRollTo = models.ForeignKey(
+        to="roll_cms.TbRoll", blank=True, null=True,
+        default=None, on_delete=models.DO_NOTHING,
+        db_constraint=False,
+        related_name="roll_to",
+        verbose_name="Вложенный ролл",
+        help_text="Вложенный ролл (лента) на который, например будет редирект при обращении к этому элементу.<br />"
+                  "<small>Если указан, то при обращении к этому элементу будет произведен редирект на указанный ролл."
+                  " Вложенный ролл, сработает как URL-ссылка, но в отличии от URL-ссылки, при изменении слага у ролла"
+                  " ничего не сломается&hellip; Впрочем, поведение задается в шаблоне элемента.</small>"
     )
     jAtt = models.JSONField(
         default=dict, blank=True, null=True,
@@ -431,6 +458,16 @@ class TbItem(models.Model):
 
 class TbMenu(models.Model):
     """ Меню. Таблица в БД `roll_cms_tbmenu` """
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
+    # Поле               | Назначение                           | Тип          | NULL | DEFAULT | Extra          |
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
+    # id                 | primary key (pk)                     | bigint(20)   | NOT  |         | auto_increment |
+    # szMenuName         | Название меню                        | varchar(32)  | NOT  |         | unique         |
+    # kMenuTemplateFrom  | Шаблон-Источник                      | bigint(20)   | YES  | NULL    | foreign key    |
+    # kMenuTemplateTo    | Кэш-Шаблон                           | bigint(20)   | YES  | NULL    | foreign key    |
+    # dtMenuCreate       | Дата создания меню                   | datetime(6)  | NOT  | NOW()   | index          |
+    # dtMenuTimeStamp    | Штамп времени (дата изменения меню)  | datetime(6)  | NOT  | NOW()   | index          |
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
     szMenuName = models.CharField(
         max_length=32, blank=False, null=False, db_index=True, unique=True,
         verbose_name="Название",
@@ -480,3 +517,4 @@ class TbMenu(models.Model):
         verbose_name = " [m] Меню"
         verbose_name_plural = " [m] Меню"
         ordering = ["id", ]
+

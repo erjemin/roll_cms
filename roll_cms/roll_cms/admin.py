@@ -202,7 +202,7 @@ class AdminRoll(admin.ModelAdmin):
             'fields': ('bRollPublish', 'szRollName', ),
         }),
         ('SLUG & REDIRECT', {
-            'fields': (('szRollSlug', 'szRollRedirectTo', ), 'jRollOldSlugs', ),
+            'fields': (('szRollSlug', 'szRollUrlTo', ), 'jRollOldSlugs', ),
             'classes': ('collapse',),
         }),
         ('ШАБЛОНЫ', {
@@ -302,8 +302,8 @@ class AdminItem(admin.ModelAdmin):
         (None, {
             'fields': ('kRoll', 'bPublish',),
         }),
-        ('ДАТА И СОРТИРОВКА', {
-            'fields': (('tdStart', 'tdStop',), ('iSort',),),
+        ('ДАТА, СОРТИРОВКА И СЧЕТЧИК', {
+            'fields': (('tdStart', 'tdStop',), ('iSort', 'iCount'),),
             'classes': ('collapse',),
         }),
         ('ЭЛЕМЕНТ КОНТЕНТА (заголовок, картинка, анонс и т.д.)', {
@@ -313,8 +313,8 @@ class AdminItem(admin.ModelAdmin):
             'fields': (('typograf', 'hang_punct',), ('hyp', 'mnemo',),),
             'classes': ('collapse',),
         }),
-        ('SLUG', {
-            'fields': ('szSlug', 'jOldSlugs',),
+        ('SLUG, URL И ВЛОЖЕННЫЙ РОЛЛ', {
+            'fields': (('szSlug', 'jOldSlugs',), ('szUrlTo',), ('kRollTo',),),
             'classes': ('collapse',),
         }),
         ('SEO', {
