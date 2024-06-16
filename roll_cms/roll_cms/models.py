@@ -518,3 +518,96 @@ class TbMenu(models.Model):
         verbose_name_plural = " [m] Меню"
         ordering = ["id", ]
 
+
+class TbMenuPoint(models.Model):
+    """ Пункты меню. Таблица в БД `roll_cms_tbmenupoint` """
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
+    # Поле               | Назначение                           | Тип          | NULL | DEFAULT | Extra          |
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
+    # id                 | primary key (pk)                     | bigint(20)   | NOT  |         | auto_increment |
+    # kMenu_id           | Меню к которому принадлежит пункт    | bigint(20)   | NOT  | NULL    | foreign key    |
+    # szPointName        | Название пункта меню (техническое)   | varchar(32)  | NOT  | ""      | index          |
+    # szPointTitle       | Поинт-Тайтл (html)                   | text         | YES  | ""      |                |
+    # iPontSort          | Сортировка пункта в меню             | smallint     | YES  | 0       | index          |
+    # kPoint2Roll_id     | Ролл на который переходит пункт      | bigint(20)   | YES  | NULL    | foreign key    |
+    # kPoint2Item_id     | Элемент на который переходит пункт   | bigint(20)   | YES  | NULL    | foreign key    |
+    # kPoint2Menu_id     | Подменю                              | bigint(20)   | YES  | NULL    | foreign key    |
+    # tdPointCreate      | Дата создания пункта                 | datetime(6)  | NOT  | NOW()   | index          |
+    # tdPointTimeStamp   | Штамп времени (дата изменения пункта)| datetime(6)  | NOT  | NOW()   | index          |
+    # -------------------+--------------------------------------+--------------+------+---------+----------------+
+    kMenu = models.ForeignKey(
+        to="roll_cms.TbMenu", blank=False, null=False, default=None,
+        on_delete=models.DO_NOTHING,
+        related_name="kMenu",
+        verbose_name="Меню",
+        help_text="Меню, к которому принадлежит 'этот пункт"
+    )
+    szPointName = models.CharField(
+        max_length=32, blank=False, null=False, db_index=True, default="",
+        verbose_name="Название",
+        help_text="Техническое название пункта меню (для админки)",
+    )
+    szPointTitle = models.TextField(
+        blank=True, null=True, default="",
+        verbose_name="Поинт-Тайтл",
+        help_text="Заголовок пункта меню (то, как пункт отображается в шаблоне). Допустим html и даже сложный код,"
+                  " так как пункт меню может быть текстом, иконкой, картинкой, csv и т.п.)"
+    )
+    iPontSort = models.SmallIntegerField(
+        default=0, db_index=True,
+        verbose_name="Сорт.",
+        help_text="Целое число.<br /><small>Для сортировки пунктов, при отображении меню. Чем меньше число, тем"
+                  " выше(раньше) пункт в меню</small>"
+    )
+    kPoint2Roll = models.ForeignKey(
+        to='roll_cms.TbRoll', blank=True, null=True,
+        on_delete=models.DO_NOTHING,
+        related_name="menu2roll",
+        verbose_name="Ролл",
+        help_text="Ролл, на который будет переход при клике по этому пункту меню<br />"
+                  "<small><b style=\"color:red\">Ролл при формировании меню имеет наивысший приоритет и отображается"
+                  " вместо других!</b><br />Если нужен редирект, то используйте поле «URL на» внутри ролла.</small>")
+    kPoint2Item = models.ForeignKey(
+        to='roll_cms.TbItem', blank=True, null=True,
+        on_delete=models.DO_NOTHING,
+        related_name="menu2item",
+        verbose_name="Элемент",
+        help_text="Элемент, на который будет переход при клике по этому пункту меню<br /> "
+                  "<small><b style=\"color:red\">Элемент при формировании меню имеет второй приоритет и отображается"
+                  " только если нет ролла!</b><br />Если нужен редирект, то используйте поле «URL на» элемента.</small>"
+    )
+    kPoint2Menu = models.ForeignKey(
+        to='roll_cms.TbMenu', blank=True, null=True,
+        on_delete=models.DO_NOTHING,
+        related_name="menu2menu",
+        verbose_name="Подменю",
+        help_text="Подменю, которое будет отображаться при наведении на этот пункт меню<br />"
+                  "<small><b style=\"\">Подменю при формировании меню имеет самый низший приоритет и отображается"
+                  " только если нет ролла и элемента!</b></small>"
+    )
+    tdPointCreate = models.DateTimeField(
+        auto_now_add=True,  # надо указать False при миграции, после вернуть в True
+        # для выполнения миграций нужно добавлять default, а после она не нужна
+        # default=datetime.now(pytz.timezone(settings.TIME_ZONE)),
+        db_index=True,
+        verbose_name="Дата Создания"
+    )
+    tdPointTimeStamp = models.DateTimeField(
+        auto_now=True,  # надо указать False при миграции, после вернуть в True
+        # для выполнения миграций нужно добавлять default, а после она не нужна
+        # default=datetime.now(pytz.timezone(settings.TIME_ZONE)),
+        db_index=True,
+        verbose_name="Штамп времени"
+    )
+
+    def __unicode__(self):
+        return f" ({self.id:02x}) {self.szPointName}"
+
+    def __str__(self):
+        return self.__unicode__()
+
+    class Meta:
+        verbose_name = " [p] Пункт меню"
+        verbose_name_plural = " [p] Пункты меню"
+        ordering = ["iPontSort", "tdPointCreate", ]
+
