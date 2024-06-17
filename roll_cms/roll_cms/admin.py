@@ -5,7 +5,7 @@ from django.db import models
 from django.forms import TextInput, Textarea
 # from ckeditor.widgets import CKEditorWidget
 # from codemirror import CodeMirrorTextarea
-from roll_cms.models import TbTemplate, TbRoll, TbItem, TbMenu
+from roll_cms.models import TbTemplate, TbRoll, TbItem, TbMenu, TbMenuPoint
 from roll_cms.settings import *
 from roll_cms.add_function import hyphenation_in_text, process_slug_fields, process_typograf_fields
 import html
@@ -184,10 +184,6 @@ class AdminRoll(admin.ModelAdmin):
             '/static/js/codemirror/init_cm_text.js',
         ]
 
-    # Переопределяем способ получения полей из модели в форму админки (чтобы получить фиктивные поля).
-    def get_form(self, request, obj=None, **kwargs):
-        return super().get_form(request, obj, **kwargs)
-
     # переопределяем метод сохранения модели
     form = RollAdminForm
     list_display = ('id', 'szRollName', 'kRollTemplate', 'kDefaultContentTemplate', 'iRollItemInPage',
@@ -250,6 +246,8 @@ class ItemAdminForm(TypografAdminForm):
             field_to_typograf = [*field_to_typograf, 'szText']
         if field_to_typograf:
             process_typograf_fields(self, field_to_typograf)
+        if form_data.get('szUrlTo') == '':
+            form_data['szUrlTo'] = None
 
     class Meta:
         model = TbItem
@@ -277,10 +275,6 @@ class AdminItem(admin.ModelAdmin):
             '/static/js/codemirror/init_cm_note.js',
             '/static/js/codemirror/init_cm_text.js',
         ]
-
-    # Переопределяем способ получения полей из модели в форму админки (чтобы получить фиктивные поля).
-    def get_form(self, request, obj=None, **kwargs):
-        return super().get_form(request, obj, **kwargs)
 
     # Добавляем поле со списком роллов в которые включен элемент
     def roll_list(self, obj):
@@ -334,7 +328,7 @@ class AdminItem(admin.ModelAdmin):
     actions_on_bottom = True
 
 
-# -- Меню [M]
+# -- [m] Меню
 # -- Форма для админки управления меню
 class MenuAdminForm(forms.ModelForm):
     # фиктивное поле для управления созданием кеш-шаблонов
@@ -365,6 +359,66 @@ class AdminMenu(admin.ModelAdmin):
         }),
         ('ШАБЛОНЫ', {
             'fields': (('do_cash',), ('kMenuTemplateFrom', 'kMenuTemplateTo',),),
+        }),
+    ]
+    empty_value_display = '<b style=\'color:red;\'>—//—</b>'
+    actions_on_top = False
+    actions_on_bottom = True
+
+
+# -- [p] Пункты Меню
+# -- Форма для админки управления пунктами меню
+class MenuItemAdminForm(TypografAdminForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, typograf_choices=[(0, 'Выключен'), (1, 'Типографировать пункт меню'),], **kwargs)
+
+    def clean(self):
+        # Переопределим валидацию формы TbMenuPoint-адмики и значения поля szPointTitle.
+        # Получаем данные из формы (поля формы)
+        # form_data: dict =
+        if super().clean()['typograf'] == '1':
+            process_typograf_fields(self, fields_4_typograf=['szPointTitle'])
+
+    class Meta:
+        model = TbMenu
+        fields = '__all__'
+        widgets = {
+            'szPointTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
+        }
+
+
+@admin.register(TbMenuPoint)
+class AdminMenuPoint(admin.ModelAdmin):
+    class Media:
+        # настройка подключения codemirror
+        css = cm_css  # подключаемые CSS
+        js = [        # Подключаемые JavaScript
+            *cm_js,
+            '/static/js/codemirror/set_theme.js',
+            '/static/js/codemirror/init_cm_title.js',
+        ]
+
+    # Переопределяем способ получения полей из модели в форму админки (чтобы получить фиктивные поля).
+    # def get_form(self, request, obj=None, **kwargs):
+    #     return super().get_form(request, obj, **kwargs)
+
+    form = MenuItemAdminForm
+    list_display = ('id', 'kMenu', 'szPointName', 'iPontSort', 'bPointPublish')
+    list_display_links = ('id', 'kMenu', 'szPointName')
+    search_fields = ['szPointTitle', 'szPointName']
+    list_editable = ('bPointPublish', 'iPontSort')
+    list_filter = ('kMenu', 'bPointPublish', )
+    # Настройка страницы редактирования
+    fieldsets = [
+        (None, {
+            'fields': (('kMenu',), ('szPointName', 'bPointPublish',), 'szPointTitle', 'iPontSort',),
+        }),
+        ('НАПРАВЛЕНИЕ ПУНКТА МЕНЮ', {
+            'fields': (('kPoint2Roll', 'kPoint2Item', 'kPoint2Menu',), 'szPointUtlTo',),
+        }),
+        ('ТИПОГРАФ И ПЕРЕНОСЫ', {
+            'fields': (('typograf', 'hang_punct',), ('hyp', 'mnemo',),),
+            'classes': ('collapse',),
         }),
     ]
     empty_value_display = '<b style=\'color:red;\'>—//—</b>'

@@ -180,7 +180,7 @@ class TbRoll(models.Model):
         default=None, on_delete=models.DO_NOTHING,
         related_name="kRollTemplate",     # из-за конфликта "магии" Джанго иначе не работает из-за парных ForeignKey
         db_constraint=False,
-        verbose_name="[r]-Шаблон",
+        verbose_name="<r>-Шаблон",
         help_text="Шаблон отвечающий за отображение списка<br />контента для категории.<br />"
                   "<b style=\"color:red\">ПОДУМАЙТЕ ПЕРЕД ТЕМ КАК ИЗМЕНЯТЬ!!</b>"
     )
@@ -271,8 +271,8 @@ class TbRoll(models.Model):
         return self.__unicode__()
 
     class Meta:
-        verbose_name = " [r] Ролл (лента)"
-        verbose_name_plural = " [r] Роллы (ленты)"
+        verbose_name = " <r> Ролл (лента)"
+        verbose_name_plural = " <r> Роллы (ленты)"
         ordering = ["id", ]
 
 
@@ -526,12 +526,14 @@ class TbMenuPoint(models.Model):
     # -------------------+--------------------------------------+--------------+------+---------+----------------+
     # id                 | primary key (pk)                     | bigint(20)   | NOT  |         | auto_increment |
     # kMenu_id           | Меню к которому принадлежит пункт    | bigint(20)   | NOT  | NULL    | foreign key    |
-    # szPointName        | Название пункта меню (техническое)   | varchar(32)  | NOT  | ""      | index          |
+    # bbPointPublish     | Опубликован пункт меню               | tinyint(1)   | NOT  | 1       | index          |
+    # szPointName        | Название пункта меню (техническое)   | varchar(32)  | NOT  | ""      |                |
     # szPointTitle       | Поинт-Тайтл (html)                   | text         | YES  | ""      |                |
     # iPontSort          | Сортировка пункта в меню             | smallint     | YES  | 0       | index          |
     # kPoint2Roll_id     | Ролл на который переходит пункт      | bigint(20)   | YES  | NULL    | foreign key    |
     # kPoint2Item_id     | Элемент на который переходит пункт   | bigint(20)   | YES  | NULL    | foreign key    |
     # kPoint2Menu_id     | Подменю                              | bigint(20)   | YES  | NULL    | foreign key    |
+    # szPointUtlTo       | URL                                  | varchar(200) | YES  | ""      |                |
     # tdPointCreate      | Дата создания пункта                 | datetime(6)  | NOT  | NOW()   | index          |
     # tdPointTimeStamp   | Штамп времени (дата изменения пункта)| datetime(6)  | NOT  | NOW()   | index          |
     # -------------------+--------------------------------------+--------------+------+---------+----------------+
@@ -540,10 +542,17 @@ class TbMenuPoint(models.Model):
         on_delete=models.DO_NOTHING,
         related_name="kMenu",
         verbose_name="Меню",
-        help_text="Меню, к которому принадлежит 'этот пункт"
+        help_text="Меню, к которому принадлежит этот пункт"
+    )
+    bPointPublish = models.BooleanField(
+        default=True, db_index=True,
+        verbose_name="Опуб…",
+        help_text="Опубликованный пункт будет отображаться в меню.<br /><small>Поведение не опубликованного пункта"
+                  " зависит от шаблона меню.<br />Например, пункт может быть «погашен» в меню с помощью<br />disabled"
+                  " или display:none, или другим способом.</small>"
     )
     szPointName = models.CharField(
-        max_length=32, blank=False, null=False, db_index=True, default="",
+        max_length=32, blank=False, null=False, default="",
         verbose_name="Название",
         help_text="Техническое название пункта меню (для админки)",
     )
@@ -566,7 +575,7 @@ class TbMenuPoint(models.Model):
         verbose_name="Ролл",
         help_text="Ролл, на который будет переход при клике по этому пункту меню<br />"
                   "<small><b style=\"color:red\">Ролл при формировании меню имеет наивысший приоритет и отображается"
-                  " вместо других!</b><br />Если нужен редирект, то используйте поле «URL на» внутри ролла.</small>")
+                  "<br />вместо других!</b> Если нужен редирект, то используйте поле «URL на» внутри ролла.</small>")
     kPoint2Item = models.ForeignKey(
         to='roll_cms.TbItem', blank=True, null=True,
         on_delete=models.DO_NOTHING,
@@ -574,16 +583,24 @@ class TbMenuPoint(models.Model):
         verbose_name="Элемент",
         help_text="Элемент, на который будет переход при клике по этому пункту меню<br /> "
                   "<small><b style=\"color:red\">Элемент при формировании меню имеет второй приоритет и отображается"
-                  " только если нет ролла!</b><br />Если нужен редирект, то используйте поле «URL на» элемента.</small>"
+                  "<br />только если нет ролла!</b> Если нужен редирект, то используйте поле «URL на» элемента.</small>"
     )
     kPoint2Menu = models.ForeignKey(
         to='roll_cms.TbMenu', blank=True, null=True,
         on_delete=models.DO_NOTHING,
         related_name="menu2menu",
         verbose_name="Подменю",
-        help_text="Подменю, которое будет отображаться при наведении на этот пункт меню<br />"
-                  "<small><b style=\"\">Подменю при формировании меню имеет самый низший приоритет и отображается"
-                  " только если нет ролла и элемента!</b></small>"
+        help_text="Подменю, будет отображаться при наведении на этот пункт меню<br />"
+                  "<small><b style=\"color:red\">Подменю при формировании меню имеет самый низший приоритет<br />"
+                  "и отображается только если нет ролла и элемента!</b></small>"
+    )
+    szPointUtlTo = models.CharField(
+        default="", blank=True, null=True, max_length=200,
+        verbose_name="URL на",
+        help_text="URL-ссылка на внешний/внутренний ресурс (например для «Дом») для ленивых.<br />"
+                  "<small><b style=\"color:red\">Если URL установлен, то он отменит все остальные переходы (роллы,\
+                   элементы и меню)!</b><br />допустимы как внутренние URL-ссылки от корня сайта \"/……/……\","
+                  " так и внешние URI-ссылки \"http://……/……\"</small>"
     )
     tdPointCreate = models.DateTimeField(
         auto_now_add=True,  # надо указать False при миграции, после вернуть в True
