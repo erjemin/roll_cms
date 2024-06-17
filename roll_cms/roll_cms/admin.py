@@ -168,6 +168,7 @@ class RollAdminForm(TypografAdminForm):
             'jRollOldSlugs': forms.Textarea(attrs={'class': 'json_editor1'}),
             'szRollTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
             'szRollText': forms.Textarea(attrs={'class': 'code_editor_text'}),
+            'szRollUrlTo': forms.Textarea(attrs={'class': 'url_str'}),
         }
 
 # -- Админка роллов
@@ -182,6 +183,7 @@ class AdminRoll(admin.ModelAdmin):
             '/static/js/codemirror/init_cm_json_1.js',
             '/static/js/codemirror/init_cm_title.js',
             '/static/js/codemirror/init_cm_text.js',
+            '/static/js/codemirror/init_cm_url.js',
         ]
 
     # переопределяем метод сохранения модели
@@ -258,6 +260,7 @@ class ItemAdminForm(TypografAdminForm):
             'szTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
             'szNote': forms.Textarea(attrs={'class': 'code_editor_note'}),
             'szText': forms.Textarea(attrs={'class': 'code_editor_text'}),
+            'szUrlTo': forms.Textarea(attrs={'class': 'url_str'}),
         }
 
 
@@ -274,6 +277,7 @@ class AdminItem(admin.ModelAdmin):
             '/static/js/codemirror/init_cm_title.js',
             '/static/js/codemirror/init_cm_note.js',
             '/static/js/codemirror/init_cm_text.js',
+            '/static/js/codemirror/init_cm_url.js',
         ]
 
     # Добавляем поле со списком роллов в которые включен элемент
@@ -384,6 +388,7 @@ class MenuItemAdminForm(TypografAdminForm):
         fields = '__all__'
         widgets = {
             'szPointTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
+            'szPointUtlTo': forms.Textarea(attrs={'class': 'url_str'}),
         }
 
 
@@ -396,6 +401,7 @@ class AdminMenuPoint(admin.ModelAdmin):
             *cm_js,
             '/static/js/codemirror/set_theme.js',
             '/static/js/codemirror/init_cm_title.js',
+            '/static/js/codemirror/init_cm_url.js',
         ]
 
     # Переопределяем способ получения полей из модели в форму админки (чтобы получить фиктивные поля).
