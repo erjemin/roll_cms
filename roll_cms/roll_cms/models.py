@@ -241,8 +241,8 @@ class TbRoll(models.Model):
         help_text="Текст ролла (пояснения перед новостной лентой, блогом и пр.)<br />"
                   "<small>разрешен HTML-код и может быть обработан типографом (если типограф включен)</small>"
     )
-    szRollUrlTo = models.URLField(
-        default="", blank=True, null=True,
+    szRollUrlTo = models.CharField(
+        default="", blank=True, null=True, max_length=200,
         verbose_name="URL на",
         help_text="Иногда нужно, чтобы ролл (пункт меню) был редиректом на другой URL, например когда"
                   "ролл снят с публикации (выключен) и нужно перенаправить трафик.<br/>"
@@ -397,8 +397,8 @@ class TbItem(models.Model):
                   "<b style=\"color:red\">Список создается автоматически, но доступен для редактирования"
                   " (например, для удаления слагов, редиректы для которых больше не требуется)</b>"
     )
-    szUrlTo = models.URLField(
-        default="", blank=True, null=True,
+    szUrlTo = models.CharField(
+        default="", blank=True, null=True, max_length=200,
         verbose_name="URL на",
         help_text="URL-ссылка на внешний ресурс (например для создания рекламных баннеров).<br />"
                   "<small>допустимы как внутренние URL-ссылки от корня сайта \"/……/……\","
