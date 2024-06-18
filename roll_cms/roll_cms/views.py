@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render, HttpResponseRedirect
 from django.template.exceptions import TemplateDoesNotExist
+from django.template import loader
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
@@ -12,6 +13,65 @@ from roll_cms.add_function import *
 import re
 
 
+def render_wrap(request: HttpRequest, template_name: str, context: dict, processed_templates: set = None) -> HttpResponse:
+    """ Обертка для функции render
+
+    :param request: входящий http-запрос
+    :param template_name: имя шаблона
+    :param context: контекст для шаблона
+    :param processed_templates: список уже обработанных шаблонов (бля избегания вечного цикла)
+    :return response: исходящий http-ответ
+    """
+    if processed_templates is None:
+        processed_templates = set()
+    if template_name in processed_templates:
+        # Шаблон уже был обработан, пропускаем его, чтобы избежать вечного цикла.
+        # Достаточно простого return, но мы вернем пустое содержимым со специальным статусом 204 (No Content).
+        HttpResponse(status=204)
+    processed_templates.add(template_name)
+    # if template_name.endswith(('.jinja2', '.j2', '.jinja')):
+    #     # Это Jinja2 шаблон
+
+    print("template_name =", template_name)
+    try:
+        # Получаем исходный текст шаблона из базы (так быстрее, чем читать файлы)
+        q1_template = TbTemplate.objects.get(szFileName=template_name)
+        # Получим контекст для этого шаблона. В render_wrap присвоение контекстных переменных осуществляется только
+        # на основании каталога, в котором находится шаблон. Контекст связанный с URL не учитывается.
+        # TODO: Сделай это!
+
+        # Удаляем комментарии  {# ... #}, {% comment %} ... {% endcomment %}, и <!-- ... --> из шаблона
+        template_without_comments = re.sub(
+            pattern=r"({#.*?#}|{%\s*comment\s*%}.*?{%\s*endcomment\s*%}|<!--.*?-->)",
+            repl='',
+            string=q1_template.szJinjaCode,
+            flags=re.DOTALL | re.IGNORECASE)
+        # Находим все используемые через include и extends, производные шаблоны
+        matches = re.findall(
+            pattern=r"{%\s+(include|extends)\s+(['\"])(.*?)\2\s+%}",
+            string=template_without_comments,
+            flags=re.IGNORECASE
+        )
+        # Преобразование списка кортежей в список строк
+        # match[2] соответствует третьей группе в регулярном выражении, которая содержит имя файла шаблона
+        includes_and_extends = [match[2] for match in matches]
+        for included_template in includes_and_extends:
+            print("included_template =", included_template)
+            render_wrap(request, included_template, context, processed_templates)
+    except TbTemplate.DoesNotExist:
+        # Шаблон не найден
+        # TODO: Проверить наличие шаблона в файловой системе, и если он там есть, то добавить его в базу. Т.о. можно
+        #       будет распространять готовые приложения. При первом обращении все шаблоны сами добавятся в базу.
+        print(f"Шаблон в базе не обнаружен \"{template_name}\". Создайте его.")
+        return HttpResponse(content=f"Вложенный шаблон в базе не обнаружен \"{template_name}\". Создайте его.", status=424)
+
+    # return render(request, template_name, context)
+    return HttpResponse(f"\"{template_name}\".", status=424)
+    # else:
+    #     # Это Django шаблон
+    #     return HttpResponse(f"RollCSM пока не работает с Jango-шаблонами \"{template_name}\".", status=424)
+
+
 def index(request: HttpRequest) -> HttpResponse:
     """ тест индексной страницы
 
@@ -19,7 +79,7 @@ def index(request: HttpRequest) -> HttpResponse:
     :return response: исходящий http-ответ
     """
     try:
-        return render(request, "index.jinja2", {})
+        return render_wrap(request, "index.jinja2", {})
     except TemplateDoesNotExist as e:
         # Обработка ошибки отсутствия шаблона
         return HttpResponse(f"RollCSM не нашла шаблон для ролла/контента \"{e}\". Создайте его.", status=424)
