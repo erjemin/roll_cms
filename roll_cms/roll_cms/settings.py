@@ -66,6 +66,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Настраиваем кэширование через файловую систему
+    "django.middleware.cache.UpdateCacheMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.cache.FetchFromCacheMiddleware",
 ]
 
 ROOT_URLCONF = 'roll_cms.urls'
@@ -175,10 +179,17 @@ TOUCH_RELOAD = MY_TOUCH_RELOAD
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Настройки для кэширования
-# https://docs.djangoproject.com/en/4.2/topics/cache/
-
-# Настройки ROLL_CMS_CACHE
-SLUG_LENGTH = 155
+# https://docs.djangoproject.com/en/5.0/topics/cache/
+# Используем кэширование в файловой системе
+CACHE_MIDDLEWARE_SECONDS = MY_CACHE_MIDDLEWARE_SECONDS
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": MY_CACHE_DIR,
+        "TIMEOUT": MY_CACHE_TIMEOUT,
+        "OPTIONS": {"MAX_ENTRIES": MY_CACHE_MAX_ENTRIES},
+    }
+}
 
 # ------------------- НАСТРОЙКИ ДЛЯ THUMBNAIL -------------------
 # # Настройки миниатюр THUMBNAIL (батарейка по созданию превьюшек)
@@ -338,3 +349,11 @@ else:
 # THUMBNAIL_HIGH_RESOLUTION = True    # Включает миниатюры для дисплеев Retina.
 # THUMBNAIL_PRESERVE_EXTENSIONS = ('png', 'gif')      # Устанавливает файлы, миниатюры которых не преобразуются в JPEG.
 # THUMBNAIL_PROGRESSIVE = 600      # Порог размера (в px), после которого миниатюры будут progressive-jpeg (черезстрочные)
+
+
+# НАСТРОЙКИ СПЕЦИФИЧНЫЕ ДЛЯ ROLL_CMS
+SLUG_LENGTH = 155
+FOLD_MENU_TEMPLATES = 'menus'
+FOLD_ROLL_TEMPLATES = 'rolls'
+FOLD_ITEM_TEMPLATES = 'items'
+FOLD_CASH_TEMPLATES = 'cash'

@@ -41,6 +41,13 @@ MY_DATABASE_PORT = '3306'
 MY_DATABASE_USER = 'db_user'
 MY_DATABASE_PASSWORD = 'db_password'
 
+# Настройки для файлового кэша
+MY_CACHE_DIR = '/home/user/web/roll-cms/roll_cache'
+MY_CACHE_TIMEOUT = 604800         # 60 * 60 * 24 * 7 = 1 неделя (Обычно сайты на Roll-CMS не особо часто обновляются
+MY_CACHE_MAX_ENTRIES = 6000
+# -- Целое число секунд, в течение которого должна кэшироваться каждая страница.
+MY_CACHE_MIDDLEWARE_SECONDS = 3600
+
 # Путь к файлу-метке для перезагрузки uwsgi
 MY_TOUCH_RELOAD = '/home/user/web/roll-cms/logs/reload_roll_cms.txt'
 
