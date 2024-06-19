@@ -409,15 +409,15 @@ class AdminMenuPoint(admin.ModelAdmin):
     #     return super().get_form(request, obj, **kwargs)
 
     form = MenuItemAdminForm
-    list_display = ('id', 'kMenu', 'szPointName', 'iPontSort', 'bPointPublish')
+    list_display = ('id', 'kMenu', 'szPointName', 'iPointSort', 'bPointPublish')
     list_display_links = ('id', 'kMenu', 'szPointName')
     search_fields = ['szPointTitle', 'szPointName']
-    list_editable = ('bPointPublish', 'iPontSort')
+    list_editable = ('bPointPublish', 'iPointSort')
     list_filter = ('kMenu', 'bPointPublish', )
     # Настройка страницы редактирования
     fieldsets = [
         (None, {
-            'fields': (('kMenu',), ('szPointName', 'bPointPublish',), 'szPointTitle', 'iPontSort',),
+            'fields': (('kMenu',), ('szPointName', 'bPointPublish',), 'szPointTitle', 'iPointSort',),
         }),
         ('НАПРАВЛЕНИЕ ПУНКТА МЕНЮ', {
             'fields': (('kPoint2Roll', 'kPoint2Item', 'kPoint2Menu',), 'szPointUtlTo',),

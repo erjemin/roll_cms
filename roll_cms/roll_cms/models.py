@@ -529,7 +529,7 @@ class TbMenuPoint(models.Model):
     # bbPointPublish     | Опубликован пункт меню               | tinyint(1)   | NOT  | 1       | index          |
     # szPointName        | Название пункта меню (техническое)   | varchar(32)  | NOT  | ""      |                |
     # szPointTitle       | Поинт-Тайтл (html)                   | text         | YES  | ""      |                |
-    # iPontSort          | Сортировка пункта в меню             | smallint     | YES  | 0       | index          |
+    # iPointSort         | Сортировка пункта в меню             | smallint     | YES  | 0       | index          |
     # kPoint2Roll_id     | Ролл на который переходит пункт      | bigint(20)   | YES  | NULL    | foreign key    |
     # kPoint2Item_id     | Элемент на который переходит пункт   | bigint(20)   | YES  | NULL    | foreign key    |
     # kPoint2Menu_id     | Подменю                              | bigint(20)   | YES  | NULL    | foreign key    |
@@ -562,7 +562,7 @@ class TbMenuPoint(models.Model):
         help_text="Заголовок пункта меню (то, как пункт отображается в шаблоне). Допустим html и даже сложный код,"
                   " так как пункт меню может быть текстом, иконкой, картинкой, csv и т.п.)"
     )
-    iPontSort = models.SmallIntegerField(
+    iPointSort = models.SmallIntegerField(
         default=0, db_index=True,
         verbose_name="Сорт.",
         help_text="Целое число.<br /><small>Для сортировки пунктов, при отображении меню. Чем меньше число, тем"
@@ -626,5 +626,5 @@ class TbMenuPoint(models.Model):
     class Meta:
         verbose_name = " [p] Пункт меню"
         verbose_name_plural = " [p] Пункты меню"
-        ordering = ["iPontSort", "tdPointCreate", ]
+        ordering = ["iPointSort", "tdPointCreate", ]
 
