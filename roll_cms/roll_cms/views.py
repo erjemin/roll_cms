@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render, HttpResponseRedirect
 from django.template.exceptions import TemplateDoesNotExist
+from django.db.models import QuerySet
 from django.template import loader
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
@@ -8,37 +9,178 @@ from django.core.mail import send_mail
 from django.http import Http404  # , request
 from django.utils.timezone import now
 from jinja2.exceptions import TemplateNotFound, TemplateSyntaxError
-from roll_cms.models import TbTemplate
+from typing import Optional, Dict
+from roll_cms.models import TbTemplate, TbMenu, TbMenuPoint
 from roll_cms.add_function import *
 import re
 
 
-def render_wrap(request: HttpRequest, template_name: str, context: dict, processed_templates: set = None) -> HttpResponse:
+def get_context_for_menu(menu: QuerySet = None, menu_id: int = None, processed_menu: set = None) -> Optional[dict]:
+    """ Получение контекста для меню
+
+    :param menu: QuerySet c записью из TbMenu -- меню, для которого надо собрать контекст.
+    :param menu_id: ID меню, для которого надо собрать контекст (не используется, если получено значение "menu").
+    :param processed_menu: Множество обработанных меню (для избежания зацикливания вложенных меню).
+    :param var : Переменная, которая будет использована для передачи контекста в шаблон.
+    :return context: Контекст для меню.
+    """
+    # Контекст меню может содержать в себе пункты (роллы, элементы) и другие меню:
+    #     { "__menu_name__": "Техническое название меню",
+    #       "__menu_id__": "ID меню",
+    #       "menu": [ {'bPointPublish': True,
+    #                 'szPointName': "пункт меню для ролла или элемента",
+    #                 'szPointTitle': "HTML, для оформления пункта меню",
+    #                 'szPointUtlTo': "url пункта меню",\
+    #                 },
+    #                 ...
+    #                 ...
+    #                 {"__menu_name__": "Вложенное меню: техническое название меню",
+    #                  "__menu_id__": "Вложенное меню: id меню",
+    #                  "include": "<div>html-код вложенного меню</div>"
+    #                 },
+    #                 ...
+    #               ]
+    #     }
+    if processed_menu is None:
+        # Множество обработанных меню (для избежания зацикливания вложенных меню).
+        processed_menu = set()
+    if menu_id is None and menu is None:
+        # Не передано ни ID меню, ни само меню, невозможно собрать контекст.
+        return None
+    if menu is None:
+        # Нет QuerySet для "сборки" меню. Получим его из базы.
+        menu = TbMenu.objects.get(pk=menu_id)
+    if menu_id is None:
+        # Нет ID меню, получим его из QuerySet
+        menu_id = menu.id
+    if menu_id in processed_menu:
+        # Меню уже обработано, пропускаем его, чтобы избежать вечного цикла.
+        return None
+    processed_menu.add(menu_id)
+    context = {"__menu_id__": menu.id,
+               "__menu_name__": menu.szMenuName,
+               }
+    points_list = list()
+    # Получим все пункты меню для данного шаблона
+    try:
+        qs_menu_points = TbMenuPoint.objects.filter(kMenu_id=menu.id).order_by("iPointSort")
+        for point in qs_menu_points:
+            # Добавим пункт меню в контекст
+            if point.szPointUtlTo is not None and not point.szPointUtlTo.strip():
+                # Этот пункт просто ссылка (внешняя или внутренняя)
+                points_list.append({
+                    'bPointPublish': point.bPointPublish,
+                    'szPointName': point.szPointName,
+                    'szPointTitle': point.szPointTitle,
+                    'szPointUtlTo': point.szPointUtlTo
+                })
+            elif point.kPoint2Roll_id is not None:
+                # Этот пункт меню ведет на ролл
+                points_list.append({
+                    'bPointPublish': point.bPointPublish,
+                    'szPointName': point.szPointName if not point.szPointName.strip() else point.kPoint2Roll.szRollName,
+                    'szPointTitle': point.szPointTitle,
+                    'szPointUtlTo': f"/{URL_PREFIX_ROLL}{point.kPoint2Roll_id}-{point.kPoint2Roll.szRollSlug}"
+                })
+            elif point.kPoint2Item_id is not None:
+                # Этот пункт меню ведет на элемент
+                points_list.append({
+                    'bPointPublish': point.bPointPublish,
+                    'szPointName': point.szPointName if not point.szPointName.strip() else point.kPoint2Item.szItemName,
+                    'szPointTitle': point.szPointTitle,
+                    'szPointUtlTo': f"/{URL_PREFIX_ITEM}{point.kPoint2Item_id}-{point.kPoint2Item.szSlug}"
+                })
+            elif point.kPoint2Menu_id is not None:
+                # Этот пункт меню требует включить другое меню
+                points_list.append({
+                    'bPointPublish': point.bPointPublish,
+                    'szPointName': point.szPointName,
+                    'szPointTitle': point.szPointTitle,
+                    'include': render_to_string(point.kPoint2Menu.kMenuTemplateFrom,
+                                                get_context_for_menu(menu_id=point.kPoint2Menu.id))
+                })      # рекурсивный вызов
+                #  get_context_for_menu(menu_id=point.kMenu_id)
+                # points_list.append({'__menu_name__': point.szPointName,
+            else:
+                # Неизвестный тип пункта меню
+                points_list.append({
+                    'bPointPublish': point.bPointPublish,
+                    'szPointName': point.szPointName,
+                    'szPointTitle': point.szPointTitle,
+                    'szPointUtlTo': "#"
+                })
+        context.update({"menu": points_list})
+        return context
+    except TbMenuPoint.DoesNotExist:
+        return None
+
+
+def render_wrap(request: HttpRequest, template_name: str,
+                processed_var_context: dict = None, processed_template_var: dict = None) -> HttpResponse:
     """ Обертка для функции render
 
     :param request: входящий http-запрос
     :param template_name: имя шаблона
-    :param context: контекст для шаблона
-    :param processed_templates: список уже обработанных шаблонов (бля избегания вечного цикла)
+    :param processed_var_context: ранее полученный контекст -- {'var': 'context'}
+    :param processed_template_var: ранее обработанные шаблоны -- {'template_name': 'var'}
     :return response: исходящий http-ответ
     """
-    if processed_templates is None:
-        processed_templates = set()
-    if template_name in processed_templates:
+    if processed_var_context is None:
+        processed_var_context = dict()
+    if processed_template_var is None:
+        processed_template_var = dict()
+
+    if template_name in processed_template_var:
         # Шаблон уже был обработан, пропускаем его, чтобы избежать вечного цикла.
         # Достаточно простого return, но мы вернем пустое содержимым со специальным статусом 204 (No Content).
-        HttpResponse(status=204)
-    processed_templates.add(template_name)
-    # if template_name.endswith(('.jinja2', '.j2', '.jinja')):
-    #     # Это Jinja2 шаблон
+        return HttpResponse(status=204)
 
     print("template_name =", template_name)
     try:
         # Получаем исходный текст шаблона из базы (так быстрее, чем читать файлы)
         q1_template = TbTemplate.objects.get(szFileName=template_name)
-        # Получим контекст для этого шаблона. В render_wrap присвоение контекстных переменных осуществляется только
-        # на основании каталога, в котором находится шаблон. Контекст связанный с URL не учитывается.
-        # TODO: Сделай это!
+        # Проверим, что для данного шаблона нужно передать контекст
+        print("Проверяем перед добавлением в processed_template_var =", {template_name: q1_template.szVar})
+        print("processed_template_var =", processed_template_var)
+        print("processed_var_context =", processed_var_context)
+        # Получим контекст для этого шаблона. В render_wrap присвоение контекстных переменных в первую очередь
+        # осуществляется на основании директории (каталога), в котором расположен шаблон.
+        # Контекст связанный с URL не учитывается (если он есть, то он должен был быть получен render_wrap снаружи).
+        template_folder_name = template_name.split("/")[0]
+        if template_folder_name in [FOLD_CASH_TEMPLATES, FOLD_BLOCK_TEMPLATES]:
+            # Это шаблон блока или кэша. У них нет контекста.
+            processed_template_var.update({template_name: None})
+        elif template_folder_name == FOLD_MENU_TEMPLATES:
+            # Это шаблон для создания меню. Получаем контекст меню из базы
+            contex = get_context_for_menu(menu=TbMenu.objects.filter(kMenuTemplateFrom_id=q1_template.id).first())
+            if contex is None:
+                processed_template_var.update({template_name: None})
+            else:
+                processed_template_var.update({template_name: q1_template.szVar})
+                processed_var_context.update({q1_template.szVar: contex})
+        elif template_folder_name == FOLD_ROLL_TEMPLATES:
+            # TODO: Это шаблон ролла. Получаем контекст ролла из базы
+            pass
+        elif template_folder_name == FOLD_ITEM_TEMPLATES:
+            # TODO: Это шаблон элемента. Получаем контекст элемента из базы
+            pass
+        else:
+            # TODO: На самом деле можно найти контекст для любого шаблона... просто это дольше,
+            #  и если один шаблон используется несколькими меню, роллами или элементами, то
+            #  можно серьезно запутаться.
+            pass
+
+        print(">>processed_template_var =", processed_template_var)
+        print(">>processed_var_context =", processed_var_context)
+
+        # if q1_template.szVar in processed_var_context:
+        #     # Хотя шаблон еще не обработан, но переменная szVar уже использована для передачи контекста.
+        #     # Поднимаем исключение TemplateSyntaxError (а то может упасть, может не упасть... админ сайта напугается
+        #     # и не поймёт, что это за ошибка).
+        #     raise TemplateSyntaxError(f"Переменная \"{q1_template.szVar}\" в шаблоне \"{template_name}\""
+        #                               f" уже использована для передачи контекста.", lineno=0)
+        #     # return HttpResponse(status=204)
+        processed_template_var.update({template_name: q1_template.szVar})
 
         # Удаляем комментарии  {# ... #}, {% comment %} ... {% endcomment %}, и <!-- ... --> из шаблона
         template_without_comments = re.sub(
@@ -57,7 +199,7 @@ def render_wrap(request: HttpRequest, template_name: str, context: dict, process
         includes_and_extends = [match[2] for match in matches]
         for included_template in includes_and_extends:
             print("included_template =", included_template)
-            render_wrap(request, included_template, context, processed_templates)
+            render_wrap(request, included_template, processed_var_context, processed_template_var)
     except TbTemplate.DoesNotExist:
         # Шаблон не найден
         # TODO: Проверить наличие шаблона в файловой системе, и если он там есть, то добавить его в базу. Т.о. можно
@@ -65,8 +207,8 @@ def render_wrap(request: HttpRequest, template_name: str, context: dict, process
         print(f"Шаблон в базе не обнаружен \"{template_name}\". Создайте его.")
         return HttpResponse(content=f"Вложенный шаблон в базе не обнаружен \"{template_name}\". Создайте его.", status=424)
 
-    # return render(request, template_name, context)
-    return HttpResponse(f"\"{template_name}\".", status=424)
+    return render(request, template_name, processed_var_context)
+    # return HttpResponse(f"\"{template_name}\".", status=424)
     # else:
     #     # Это Django шаблон
     #     return HttpResponse(f"RollCSM пока не работает с Jango-шаблонами \"{template_name}\".", status=424)
@@ -79,7 +221,7 @@ def index(request: HttpRequest) -> HttpResponse:
     :return response: исходящий http-ответ
     """
     try:
-        return render_wrap(request, "index.jinja2", {})
+        return render_wrap(request, "index.jinja2")
     except TemplateDoesNotExist as e:
         # Обработка ошибки отсутствия шаблона
         return HttpResponse(f"RollCSM не нашла шаблон для ролла/контента \"{e}\". Создайте его.", status=424)
