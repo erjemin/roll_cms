@@ -3,6 +3,7 @@ import random
 
 from django.db import models
 from django.utils.timezone import now
+from django.core.cache import cache
 from filer.fields.image import FilerImageField
 # from ckeditor.fields import RichTextField
 # from ckeditor_uploader.fields import RichTextUploadingField
@@ -80,8 +81,8 @@ class TbTemplate(models.Model):
         else:
             # неизвестный формат шаблона
             path_filename = TEMPLATES[1]["DIRS"][0] / f"{self.szFileName}.html"
-        if not self.pk and re.sub(r"\s", "", self.szJinjaCode) == "":
-            # Это не редактирование, а создание нового шаблона.
+        if not self.pk and not self.szJinjaCode.strip():
+            # Нет первичного ключа и поле szJinjaCode пустое -- это не редактирование, а создание нового шаблона.
             # Нужно проверить, вдруг файл шаблона с таким именем уже существует?
             # Но если проверка покажет, что файл с таким именем существует, то надо будет в любом случае прочитать его
             # и записать в поле szJinjaCode, а после занести в базу!!! Ну и зачем проверить тогда!! Сразу читаем, и
@@ -99,13 +100,15 @@ class TbTemplate(models.Model):
             # TODO: проверка на существование каталога у шаблона не работает если каталог имеет большую вложенность >=2
             os.makedirs(os.path.dirname(path_filename))
         with open(path_filename, "w+", encoding="utf-8") as tmplt_file:
+            # записываем шаблон в файл
             tmplt_file.write(self.szJinjaCode.replace("\r\n", "\n"))
         # для продакшн (not DEBUG) нужно "дёрнуть" файл-touch_reload, чтобы uWSGI "щёлкнул"
         # (или отключить кеширование шаблонов в Django, что замедлит работу сайта)
         with open(TOUCH_RELOAD, "a") as f:
             f.write(log_p(msg=f"TEMPLATE \"{self.szFileName}\" RELOAD", status="OK")+"\n")
-        # TODO: Придумать как чистить кеш Django... при изменении шаблона, все равно будет показывать
-        #       старый кеш (пока кеш не прокиснет)
+        if not DEBUG:
+            # Очистка всего кеша
+            cache.clear()
         super(TbTemplate, self).save(*args, **kwargs)
 
     # переопределяем метод delete() (пока, не удаляется)
