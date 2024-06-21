@@ -95,10 +95,10 @@ class TbTemplate(models.Model):
             except FileNotFoundError:
                 # это действительно новый шаблон, но с пустым содержанием
                 pass
-        # проверим, если нет каталога в котором нужно сохранить шаблон, то создадим его
-        if not os.path.exists(os.path.dirname(path_filename)):
-            # TODO: проверка на существование каталога у шаблона не работает если каталог имеет большую вложенность >=2
-            os.makedirs(os.path.dirname(path_filename))
+        # Создаем каталог(и), если они еще не существуют.
+        # Параметр exist_ok=True говорит функции не вызывать исключение, если каталоги уже существуют.
+        os.makedirs(os.path.dirname(path_filename),
+                    exist_ok=True)
         with open(path_filename, "w+", encoding="utf-8") as tmplt_file:
             # записываем шаблон в файл
             tmplt_file.write(self.szJinjaCode.replace("\r\n", "\n"))
