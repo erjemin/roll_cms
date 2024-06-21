@@ -160,6 +160,9 @@ class RollAdminForm(TypografAdminForm):
             field_to_typograf = [*field_to_typograf, 'szRollText']
         if field_to_typograf:
             process_typograf_fields(self, field_to_typograf)
+        if not form_data['szRollUrlTo'].strip():
+            # Поле szRollUrlTo пустое или состоит только из пробелов (пробельных символов)
+            form_data['szRollUrlTo'] = None
 
     class Meta:
         model = TbRoll
@@ -170,6 +173,7 @@ class RollAdminForm(TypografAdminForm):
             'szRollText': forms.Textarea(attrs={'class': 'code_editor_text'}),
             'szRollUrlTo': forms.Textarea(attrs={'class': 'url_str'}),
         }
+
 
 # -- Админка роллов
 @admin.register(TbRoll)
@@ -248,7 +252,8 @@ class ItemAdminForm(TypografAdminForm):
             field_to_typograf = [*field_to_typograf, 'szText']
         if field_to_typograf:
             process_typograf_fields(self, field_to_typograf)
-        if form_data.get('szUrlTo') == '':
+        if not form_data['szUrlTo'].strip():
+            # Поле szUrlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szUrlTo'] = None
 
     class Meta:
@@ -379,9 +384,12 @@ class MenuItemAdminForm(TypografAdminForm):
     def clean(self):
         # Переопределим валидацию формы TbMenuPoint-адмики и значения поля szPointTitle.
         # Получаем данные из формы (поля формы)
-        # form_data: dict =
-        if super().clean()['typograf'] == '1':
+        form_data: dict = super().clean()
+        if form_data['typograf'] == '1':
             process_typograf_fields(self, fields_4_typograf=['szPointTitle'])
+        if not form_data['szPointUtlTo'].strip():
+            # Поле szPointUtlTo пустое или состоит только из пробелов (пробельных символов)
+            form_data['szPointUtlTo'] = None
 
     class Meta:
         model = TbMenu
