@@ -184,7 +184,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CACHE_MIDDLEWARE_SECONDS = MY_CACHE_MIDDLEWARE_SECONDS
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache" if DEBUG else
+                   "django.core.cache.backends.filebased.FileBasedCache",
         "LOCATION": MY_CACHE_DIR,
         "TIMEOUT": MY_CACHE_TIMEOUT,
         "OPTIONS": {"MAX_ENTRIES": MY_CACHE_MAX_ENTRIES},
