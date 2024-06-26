@@ -160,7 +160,7 @@ class RollAdminForm(TypografAdminForm):
             field_to_typograf = [*field_to_typograf, 'szRollText']
         if field_to_typograf:
             process_typograf_fields(self, field_to_typograf)
-        if not form_data['szRollUrlTo'].strip():
+        if form_data['szRollUrlTo'] is not None and not form_data['szRollUrlTo'].strip():
             # Поле szRollUrlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szRollUrlTo'] = None
 
@@ -252,7 +252,7 @@ class ItemAdminForm(TypografAdminForm):
             field_to_typograf = [*field_to_typograf, 'szText']
         if field_to_typograf:
             process_typograf_fields(self, field_to_typograf)
-        if not form_data['szUrlTo'].strip():
+        if form_data['szUrlTo'] is not None and not form_data['szUrlTo'].strip():
             # Поле szUrlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szUrlTo'] = None
 
@@ -387,7 +387,7 @@ class MenuItemAdminForm(TypografAdminForm):
         form_data: dict = super().clean()
         if form_data['typograf'] == '1':
             process_typograf_fields(self, fields_4_typograf=['szPointTitle'])
-        if not form_data['szPointUtlTo'].strip():
+        if form_data['szPointUtlTo'] is not None and not form_data['szPointUtlTo'].strip():
             # Поле szPointUtlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szPointUtlTo'] = None
 
