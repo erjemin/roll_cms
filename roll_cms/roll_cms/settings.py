@@ -354,7 +354,7 @@ else:
 
 # НАСТРОЙКИ СПЕЦИФИЧНЫЕ ДЛЯ ROLL_CMS
 SLUG_LENGTH = 155
-FOLD_BLOCK_TEMPLATES = 'block'
+FOLD_BLOCK_TEMPLATES = 'blocks'
 FOLD_CASH_TEMPLATES = '_cash'
 FOLD_MENU_TEMPLATES = 'menus'
 FOLD_ROLL_TEMPLATES = 'rolls'
