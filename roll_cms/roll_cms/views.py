@@ -10,7 +10,7 @@ from django.http import Http404  # , request
 from django.utils.timezone import now
 from jinja2.exceptions import TemplateNotFound, TemplateSyntaxError
 from typing import Optional, Dict
-from roll_cms.models import TbTemplate, TbMenu, TbMenuPoint
+from roll_cms.models import TbTemplate, TbMenu, TbMenuPoint, TbRoll, TbItem
 from roll_cms.add_function import *
 import re
 
@@ -53,7 +53,6 @@ def get_context_for_menu(q_menu: QuerySet = None, menu_id: int = None, processed
             q_menu = TbMenu.objects.get(pk=menu_id)
         except TbMenu.DoesNotExist:
             # Меню не найдено
-            print(f">>>> Меню с id={menu_id} не найдено.")
             return None
     if menu_id is None:
         # Нет ID меню, получим его из QuerySet
@@ -109,9 +108,67 @@ def get_context_for_menu(q_menu: QuerySet = None, menu_id: int = None, processed
         return None
 
 
-def collect_contex_for_template(template_name: str,
-                                processed_var_context: dict = None, processed_template_var: dict = None) -> Optional[dict]:
-    """ Обертка для функции render
+def get_context_for_roll(q_roll: QuerySet = None, roll_id: int = None, processed_roll: set = None) -> Optional[dict]:
+    """ Получение контекста для ролла
+
+    :param q_roll: QuerySet c записью из TbRoll -- ролл, для которого надо собрать контекст.
+    :param roll_id: ID ролла, для которого надо собрать контекст (не используется, если получено значение "q_roll").
+    :param processed_roll: Множество обработанных роллов (для избежания зацикливания вложенных роллов).
+    :param var : Переменная, которая будет использована для передачи контекста в шаблон.
+    :return context: Контекст для ролла.
+    """
+    # Контекст ролла может содержать в себе элементы и другие роллы:
+    #     { "__roll_name__": "Техническое название ролла",
+    #       "__roll_id__": "ID ролла",
+    #       "roll": [ {'bItemPublish': True,
+    #                 'szItemName': "название элемента",
+    #                 'szItemTitle': "HTML, для оформления элемента",
+    #                 'szItemUtlTo': "url элемента",\
+    #                 },
+    #                 ...
+    #                 ...
+    #                 {"__roll_name__": "Вложенный ролл: техническое название ролла",
+    #                  "__roll_id__": "Вложенный ролл: id ролла",
+    #                  "include": "<div>html-код вложенного ролла</div>"
+    #                 },
+    #                 ...
+    #               ]
+    #     }
+    if roll_id is None and q_roll is None:
+        # Не передано ни ID ролла, ни сам ролл, невозможно собрать контекст.
+        return None
+    if processed_roll is None:
+        # Множество обработанных роллов (для избежания зацикливания вложенных роллов).
+        processed_roll = set()
+    if q_roll is None:
+        try:
+            # Нет QuerySet для "сборки" ролла. Получим его из базы.
+            q_roll = TbRoll.objects.get(pk=roll_id)
+        except TbRoll.DoesNotExist:
+            # Ролл не найден
+            return None
+    filter_args_value = dict()
+    args_value = q_roll.szRollFilterRule.split(",") if q_roll.szRollFilterRule is not None else None
+    for pair in args_value:
+        try:
+            key, value = pair.split("=")
+            value = eval(value)
+        except:
+            # Не удалось разобрать пару ключ=значение или ошибка eval(value)
+            continue
+        filter_args_value.update({key: value})
+    # Добавим в словарь пару ключ-значение 'kRoll=q_roll.id'
+    filter_args_value['kRoll'] = q_roll.id
+    # Используем возможность вызова .order_by() в ORM Django без аргументов (это сбрасывает более ранние сортировки)
+    order_by_args = q_roll.szRollSortRule.split(",") if q_roll.szRollSortRule is not None else None
+    # добавим в QuerySet q_roll все элементы, которые соответствуют фильтрации и сортировке (и срез)
+    q_roll.items = TbItem.objects.filter(**filter_args_value).order_by(*order_by_args)[:q_roll.iRollItemInPage]
+    return q_roll
+
+
+def gather_template_context(template_name: str, processed_var_context: dict = None,
+                            processed_template_var: dict = None) -> Optional[dict]:
+    """ Собирает контекст для шаблона
 
     :param template_name: имя шаблона
     :param processed_var_context: ранее полученный контекст -- {'var': 'context'}
@@ -145,11 +202,13 @@ def collect_contex_for_template(template_name: str,
                 # Шаблон найден в файловой системе... получаем код шаблона...
                 template_code = file.read()
                 # ...найдём (или нет) переменную контекста в коде шаблона -- "{# RollCMS_var _переменная_ #}"
-                match = re.search(pattern=r"{#\s+RollCMS_var\s+(.+?)\s+#}", string=template_code)
-                template_var = None if match is not None else match.group(1)
+                match = re.search(pattern=r"{#\s+RollCMS_var\s+(\S+)\s+#}",
+                                  string=template_code, flags=re.IGNORECASE)
+                template_var = None if match is None else match.group(1)
                 # ...найдём (или нет) описание в коде шаблона -- "{# RollCMS_description _описание_ #}"
-                match = re.search(pattern=r"{#\s+RollCMS_description\s+(.+?)\s+#}",string=template_code)
-                template_description = f"from: \"{template_name}\"" if match is not None else match.group(1)
+                match = re.search(pattern=r"{#\s+RollCMS_description\s+(.+?)\s+#}",
+                                  string=template_code, flags=re.IGNORECASE)
+                template_description = f"from: \"{template_name}\"" if match is None else match.group(1)
                 # ...и запишем шаблон в базу данных и. одновременно, получим QuerySet для дальнейшей работы
                 q1_template = TbTemplate.objects.create(
                     szFileName=template_name, szJinjaCode=template_code,
@@ -158,7 +217,7 @@ def collect_contex_for_template(template_name: str,
         except FileNotFoundError:
             # Шаблон не найден ни в базе, ни в файловой системе. Беда!
             raise TemplateDoesNotExist(f"{path_to_template}")
-    # Получим контекст для этого шаблона. В collect_contex_for_template() присвоение контекстных переменных,
+    # Получим контекст для этого шаблона. В gather_template_context() присвоение контекстных переменных,
     # в первую очередь, осуществляется на основании директории (каталога), в котором расположен шаблон.
     # Контекст связанный с URL не учитывается (если он есть, то он должен был быть получен функцией снаружи).
     template_folder_name = q1_template.szFileName.split("/")[0]
@@ -167,14 +226,48 @@ def collect_contex_for_template(template_name: str,
         processed_template_var.update({template_name: None})
     elif template_folder_name == FOLD_MENU_TEMPLATES:
         # Это шаблон для создания меню. Получаем контекст меню из базы
-        contex = get_context_for_menu(q_menu=TbMenu.objects.filter(kMenuTemplateFrom_id=q1_template.id).first())
-        if contex is None:
+        q_menu=TbMenu.objects.filter(kMenuTemplateFrom_id=q1_template.id).first()
+        if q_menu is None:
+            # В таблице TbMenu нет записи о меню, которое использует этот шаблон.
             processed_template_var.update({template_name: None})
         else:
+            contex = get_context_for_menu(q_menu)
             processed_template_var.update({template_name: q1_template.szVar})
             processed_var_context.update({q1_template.szVar: contex})
     elif template_folder_name == FOLD_ROLL_TEMPLATES:
-        # TODO: Это шаблон ролла. Получаем контекст ролла из базы
+        # Это шаблон ролла (который . Получаем контекст ролла из базы
+        # Это ролл, который встроен в шаблон
+        q_roll = TbRoll.objects.filter(kRollTemplate_id=q1_template.id).first()
+        if q_roll is None:
+            # В таблице TbRoll нет записи о ролле, который использует этот шаблон.
+            processed_template_var.update({template_name: None})
+        else:
+            # Надо учесть, что во встроенном ролле могут быть свои фильтрации, сортировки и т.п.
+            # Найдем '{# RollCMS_Roll_ItemInPage _число_ #} -- число элементов во встроенном ролле (в коде шаблона)
+            match = re.search(pattern=r"{#\s+RollCMS_RollItemIn\s+(\d+?)\s+#}",
+                              string=q1_template.szJinjaCode, flags=re.IGNORECASE)
+            if match is not None:
+                # Это ролл с альтернативным числом элементов
+                q_roll.iRollItemInPage = int(match.group(1))
+            # Найдем '{# RollCMS_RollFilterRule _строка_ #} -- правило фильтрации для встроенного ролла (в коде шаблона)
+            match = re.search(pattern=r"{#\s+RollCMS_RollFilterRule\s+(.+?)\s+#}",
+                              string=q1_template.szJinjaCode, flags=re.IGNORECASE)
+            if match is not None:
+                # Это ролл с альтернативным правилом фильтрации
+                q_roll.szRollFilterRule = match.group(1)
+            # Найдем '{# RollCMS_RollSortRule _число_ #} -- правило сортировки для встроенного ролла (в коде шаблона)
+            match = re.search(pattern=r"{#\s+RollCMS_RollSortRule\s+(.+?)\s+#}",
+                              string=q1_template.szJinjaCode, flags=re.IGNORECASE)
+            if match is not None:
+                # Это ролл с альтернативным правилом сортировки
+                q_roll.szRollSortRule = match.group(1)
+            contex = get_context_for_roll(q_roll)
+            processed_template_var.update({template_name: q1_template.szVar})
+            processed_var_context.update({q1_template.szVar: contex})
+            print(f"{contex}")
+            print(f"processed_template_var ={processed_template_var}")
+            print(f"processed_var_context ={processed_var_context}")
+
         pass
     elif template_folder_name == FOLD_ITEM_TEMPLATES:
         # TODO: Это шаблон элемента. Получаем контекст элемента из базы
@@ -209,8 +302,8 @@ def collect_contex_for_template(template_name: str,
     # match[2] соответствует третьей группе в регулярном выражении, которая содержит имя файла шаблона
     includes_and_extends = [match[2] for match in matches]
     for included_template in includes_and_extends:
-        # Рекурсивный вызов collect_contex_for_template() для вложенных шаблонов
-        collect_contex_for_template(included_template, processed_var_context, processed_template_var)
+        # Рекурсивный вызов gather_template_context() для вложенных шаблонов
+        gather_template_context(included_template, processed_var_context, processed_template_var)
     return processed_var_context
 
 
@@ -221,7 +314,7 @@ def index(request: HttpRequest) -> HttpResponse:
     :return response: исходящий http-ответ
     """
     try:
-        context = collect_contex_for_template(template_name="index.jinja2")
+        context = gather_template_context(template_name="index.jinja2")
         return render(request, template_name="index.jinja2", context=context)
     except TemplateDoesNotExist as e:
         # Обработка ошибки отсутствия шаблона

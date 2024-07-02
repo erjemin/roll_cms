@@ -7,13 +7,22 @@
 <body>{% block BODY %}{% block Top_CSS1 %}{% endblock %}{% block Top_CSS2 %}{% endblock %}{% block Top_CSS3 %}{% endblock %}
 {#  {% include "blocks/header_nav.jinja2" %}#}
 {% block CONTENT %}{% endblock CONTENT %}
-{#  {% include "blocks/footer.jinja2" %} #}{% if not COOKIES %}
-  {% include "blocks/accept-cookies.jinja2" %}{% endif %}
+{#  {% include "blocks/footer.jinja2" %} #}
 {% block Top_JS1 %}{% endblock Top_JS1 %}{% block Top_JS2 %}{% endblock Top_JS2 %}{% block Top_JS3 %}{% endblock Top_JS3 %}{#
   <!-- script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
    crossorigin="anonymous"></script -->
 #}<script type="text/javascript" src="{{ static('js/bootstrap.bundle.min.js') }}"></script>
+  
+  <p>MENUS-BEGIN</p>
+  {% include "menus/main-menu-1.jinja2" %}
+  <p>MENUS-END</p>
+  
+  {% include "menus/main-menu-2.jinja2" %}
+  
+  <code>Стайд-шоу на главной (начало)</code>
+  {% include "rolls/slideshow_on_main_page.jinja2" %}
+  <code>Стайд-шоу на главной (конец-)</code>
   
   <p><img src="logo" /></p>
   
@@ -29,7 +38,8 @@
   </script>
   <p style="font-family: var(--font-family-monospace)">?---<b>?</b></p>
   <div style="background:red;">RED--</div>
+ 
 
-
-{% endblock BODY %}</body>
+{% endblock BODY %}{% if not COOKIES %}
+  {% include "blocks/accept-cookies.jinja2" %}{% endif %}</body>
 </html>
