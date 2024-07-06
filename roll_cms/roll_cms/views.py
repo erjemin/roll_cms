@@ -108,7 +108,7 @@ def get_context_for_menu(q_menu: QuerySet = None, menu_id: int = None, processed
         return None
 
 
-def get_context_for_roll(q_roll: QuerySet = None, roll_id: int = None, processed_roll: set = None) -> Optional[dict]:
+def get_context_for_roll(q_roll: QuerySet = None, roll_id: int = None, processed_roll: set = None) -> Optional[QuerySet]:
     """ Получение контекста для ролла
 
     :param q_roll: QuerySet c записью из TbRoll -- ролл, для которого надо собрать контекст.
@@ -117,23 +117,6 @@ def get_context_for_roll(q_roll: QuerySet = None, roll_id: int = None, processed
     :param var : Переменная, которая будет использована для передачи контекста в шаблон.
     :return context: Контекст для ролла.
     """
-    # Контекст ролла может содержать в себе элементы и другие роллы:
-    #     { "__roll_name__": "Техническое название ролла",
-    #       "__roll_id__": "ID ролла",
-    #       "roll": [ {'bItemPublish': True,
-    #                 'szItemName': "название элемента",
-    #                 'szItemTitle': "HTML, для оформления элемента",
-    #                 'szItemUtlTo': "url элемента",\
-    #                 },
-    #                 ...
-    #                 ...
-    #                 {"__roll_name__": "Вложенный ролл: техническое название ролла",
-    #                  "__roll_id__": "Вложенный ролл: id ролла",
-    #                  "include": "<div>html-код вложенного ролла</div>"
-    #                 },
-    #                 ...
-    #               ]
-    #     }
     if roll_id is None and q_roll is None:
         # Не передано ни ID ролла, ни сам ролл, невозможно собрать контекст.
         return None
@@ -264,9 +247,6 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
             contex = get_context_for_roll(q_roll)
             processed_template_var.update({template_name: q1_template.szVar})
             processed_var_context.update({q1_template.szVar: contex})
-            print(f"{contex}")
-            print(f"processed_template_var ={processed_template_var}")
-            print(f"processed_var_context ={processed_var_context}")
 
         pass
     elif template_folder_name == FOLD_ITEM_TEMPLATES:

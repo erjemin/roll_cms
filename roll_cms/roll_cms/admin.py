@@ -207,8 +207,8 @@ class AdminRoll(admin.ModelAdmin):
             'fields': (('szRollSlug', 'szRollUrlTo', ), 'jRollOldSlugs', ),
             'classes': ('collapse',),
         }),
-        ('ШАБЛОНЫ', {
-            'fields': (('kRollTemplate', 'kDefaultContentTemplate', ),),
+        ('ШАБЛОНЫ И РОДИТЕЛЬСКИЙ РОЛЛ', {
+            'fields': (('kRollTemplate', 'kDefaultContentTemplate', ), ('kRollToParentRoll'), ),
         }),
         ('СОРТИРОВКА, ФИЛЬТРАЦИЯ и ПАГИНАЦИЯ', {
             'fields': ('szRollSortRule', 'szRollFilterRule', 'iRollItemInPage',),
@@ -290,15 +290,15 @@ class AdminItem(admin.ModelAdmin):
         return ", ".join([roll.szRollName for roll in obj.kRoll.all()])
     roll_list.short_description = 'Роллы'
 
-    # Изменяем вывод поля szTitle для list_display (чтобы не было мнемокода. если он там есть)
-    def title_wo_mnemo(self, obj):
-        return html.unescape(obj.szTitle)
+    # Изменяем вывод поля szTitle для list_display (чтобы не было мнемокода, если он там есть)
+    # def title_to_mnemo(self, obj):
+    #     return html.unescape(obj.szTitle)
 
     form = ItemAdminForm
-    list_display = ('id', 'title_wo_mnemo', 'roll_list', 'iSort', 'tdStart', 'bPublish')
-    list_display_links = ('id', 'title_wo_mnemo', 'roll_list')
+    list_display = ('id', 'szName', 'roll_list', 'iSort', 'tdStart', 'bPublish')
+    list_display_links = ('id', 'szName', 'roll_list')
     search_fields = ['szTitle', 'szNote', 'szText']
-    list_editable = ('bPublish',)
+    list_editable = ('bPublish', 'iSort',)
     list_filter = ('bPublish', 'kRoll__szRollName',)
     # Настройка страницы редактирования
     fieldsets = [
@@ -310,7 +310,7 @@ class AdminItem(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
         ('ЭЛЕМЕНТ КОНТЕНТА (заголовок, картинка, анонс и т.д.)', {
-            'fields': ('szTitle', 'kImg', 'szNote', 'szText',),
+            'fields': ('szName', 'szTitle', 'kImg', 'szNote', 'szText',),
         }),
         ('ТИПОГРАФ И ПЕРЕНОСЫ', {
             'fields': (('typograf', 'hang_punct',), ('hyp', 'mnemo',),),

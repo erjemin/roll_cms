@@ -64,7 +64,7 @@ class TbTemplate(models.Model):
     )
 
     def __unicode__(self):
-        return f"{self.szFileName}"
+        return f"{{{self.id:03}}} {self.szDescription}"
 
     def __str__(self):
         return self.__unicode__()
@@ -131,7 +131,7 @@ class TbRoll(models.Model):
     # id                 | primary key (pk)                     | bigint(20)   | NOT  |         | auto_increment |
     # szRollSlug         | URL-слаг                             | varchar(155) | YES  | ""      | unique         |
     # jRollOldSlugs      | Старые URL-слаги                     | json         | YES  | NULL    |                |
-    # szRollName         | Имя ролла  (техническое)             | varchar(64)  | NOT  |         | unique         |
+    # szRollName         | Имя ролла (техническое)              | varchar(64)  | NOT  |         | unique         |
     # bRollPublished     | Вкл./Выкл. ролл (опубликован)        | tinyint(1)   | NOT  | 1       | index          |
     # kRollTemplate_id   | Шаблон ролла                         | bigint(20)   | YES  | NULL    | foreign key(?) |
     # kDefaultContentTemplate_id | Шаблон контента (default)    | bigint(20)   | YES  | NULL    | foreign key(?) |
@@ -254,6 +254,15 @@ class TbRoll(models.Model):
                   "<small>допустимы как внутренние URL-ссылки от корня сайта \"/……/……\","
                   " так и внешние URI-ссылки \"http://……/……\"</small>"
     )
+    kRollToParentRoll = models.ForeignKey(
+        to="roll_cms.TbRoll", blank=True, null=True,
+        default=None, on_delete=models.DO_NOTHING,
+        related_name="kParentRoll",
+        db_constraint=False,
+        verbose_name="Родительский ролл",
+        help_text="Родительский ролл, к которому привязан этот ролл. Например, если это ролл-категория или"
+                  "под-разделом, то родительский ролл может быть ролл-каталогом или разделом."
+    )
     dtRollCreate = models.DateTimeField(
         auto_now_add=True,  # надо указать False при миграции, после вернуть в True
         # для выполнения миграций нужно добавлять default, а после она не нужна
@@ -270,7 +279,7 @@ class TbRoll(models.Model):
     )
 
     def __unicode__(self):
-        return f"{self.id:03}: {self.szRollSlug}"
+        return f"<{self.id:03}> {self.szRollName}"
 
     def __str__(self):
         return self.__unicode__()
@@ -341,6 +350,11 @@ class TbItem(models.Model):
         default=0, db_index=True,
         verbose_name="Счётчик",
         help_text="Целое число.<br /><small>Может использоваться для подсчёта<br/>количества просмотров элемента.</small>"
+    )
+    szName = models.CharField(
+        max_length=128, default="", blank=False, null=False,
+        verbose_name="Название (техническое)",
+        help_text="Техническое название информационной единицы."
     )
     szTitle = models.CharField(
         max_length=768, default="", blank=False, null=False,

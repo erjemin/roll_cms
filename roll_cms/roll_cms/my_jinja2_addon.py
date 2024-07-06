@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from jinja2 import lexer, nodes, Environment
 from jinja2.ext import Extension
 from django.urls import reverse
@@ -11,7 +10,6 @@ from datetime import datetime
 
 
 # ОКРУЖЕНИЕ jinja2:
-
 def environment(**options):
     env = Environment(**options)
     # добавляет тег static в jinja2 для обслуживания статики django
