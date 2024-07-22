@@ -174,12 +174,12 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
         if q1_template.szVar is None or not q1_template.szVar.strip():
             # Для этого шаблона контекст не нужен, а заодно q1_template.szVar проверит наличие QuerySet или "упадёт"
             processed_template_var.update({template_name: None})
-            return processed_var_context
+            # return processed_var_context
     except TbTemplate.DoesNotExist:
         # Шаблон не найден в базе, попробуем найти его в файловой системе и перенести в базу.
-        path_to_template = f"{TEMPLATES[1]["DIRS"][0]}/{template_name}"
+        path_to_template = f"{TEMPLATES[1]['DIRS'][0]}/{template_name}"
         if template_name.lower().endswith((".jinja2", ".j2", ".jinja",)):
-            path_to_template = f"{TEMPLATES[0]["DIRS"][0]}/{template_name}"
+            path_to_template = f"{TEMPLATES[0]['DIRS'][0]}/{template_name}"
         try:
             with open(path_to_template, "r", encoding="utf-8") as file:
                 # Шаблон найден в файловой системе... получаем код шаблона...
@@ -283,7 +283,7 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
     includes_and_extends = [match[2] for match in matches]
     for included_template in includes_and_extends:
         # Рекурсивный вызов gather_template_context() для вложенных шаблонов
-        gather_template_context(included_template, processed_var_context, processed_template_var)
+        gather_template_context(included_template, processed_var_context, )
     return processed_var_context
 
 

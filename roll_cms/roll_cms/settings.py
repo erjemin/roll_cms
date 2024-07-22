@@ -23,7 +23,7 @@ elif socket.gethostname() == 'erjemin-home':
 elif socket.gethostname() in ['m1.N1', 'm1.local', ]:
     # домашний комп (MacOS)
     from roll_cms.my_secret_dev_home_mac import *
-elif socket.gethostname() in ['orangepi5', 'vm678195', ]:
+elif socket.gethostname() in ['orangepi5', 'vm686994', ]:
     # продакшн (боевой) сервер
     from roll_cms.my_secret_prod import *
 
@@ -155,9 +155,13 @@ MEDIA_URL = 'media/'
 # подключения к базе данных, различные каталоги расположения статических- и медиа-файлов. и т.п.
 MEDIA_ROOT = MY_MEDIA_ROOT
 SITE_ROOT = MY_SITE_ROOT
-STATICFILES_DIRS = [
-    MY_STATIC_ROOT
-]
+if DEBUG:
+    STATICFILES_DIRS = [
+        MY_STATIC_ROOT
+    ]
+else:
+    STATIC_ROOT = MY_STATIC_ROOT
+    STATICFILES_DIRS = list()
 # путь к каталогу static (в эту переменную использовать для указания пути где будут делаться кэш-картинки)
 # STATIC_BASE_PATH = MY_STATIC_BASE_PATH_HOME2
 DATABASES = {

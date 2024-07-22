@@ -35,7 +35,7 @@ urlpatterns = [
     # # https://githubhelp.com/nephila/django-ckeditor-filebrowser-filer/issues/41
     # re_path(r'^filebrowser_filer/filer_', include('ckeditor_filebrowser_filer.urls')),
 
-    path('admin/', admin.site.urls),
+    path('ad-min/', admin.site.urls),
 
     re_path(r'^$', views.index),
     # универсальный обработчик
