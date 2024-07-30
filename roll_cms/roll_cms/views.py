@@ -150,13 +150,13 @@ def get_context_for_roll(q_roll: QuerySet = None, roll_id: int = None, processed
 
 
 def gather_template_context(template_name: str, processed_var_context: dict = None,
-                            processed_template_var: dict = None) -> Optional[dict]:
+                            processed_template_var: dict = None) -> None:
     """ Собирает контекст для шаблона
 
     :param template_name: имя шаблона
     :param processed_var_context: ранее полученный контекст -- {'var': 'context'}
     :param processed_template_var: ранее обработанные шаблоны -- {'template_name': 'var'}
-    :return response: исходящий http-ответ
+    :return response: None (результат возвращается в переменных processed_var_context и processed_template_var)
     """
     if processed_var_context is None:
         processed_var_context = dict()
