@@ -166,7 +166,7 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
     if template_name in processed_template_var:
         # Шаблон уже был обработан, пропускаем его, чтобы избежать вечного цикла.
         # Достаточно простого return, но мы вернем пустое содержимым со специальным статусом 204 (No Content).
-        return processed_var_context
+        return
     try:
         # Получаем исходный текст шаблона из базы (так быстрее, чем читать файлы)
         q1_template = TbTemplate.objects.get(szFileName=template_name)
@@ -174,12 +174,16 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
         if q1_template.szVar is None or not q1_template.szVar.strip():
             # Для этого шаблона контекст не нужен, а заодно q1_template.szVar проверит наличие QuerySet или "упадёт"
             processed_template_var.update({template_name: None})
-            # return processed_var_context
+            # print(f"Шаблон есть в БД, но нет szVar: processed_template_var = {processed_template_var}")
+            # print(f"Нет szVar, некуда положить контекст, а значит и нечего этот контекст получать, выходим.")
+            # return
     except TbTemplate.DoesNotExist:
         # Шаблон не найден в базе, попробуем найти его в файловой системе и перенести в базу.
-        path_to_template = f"{TEMPLATES[1]['DIRS'][0]}/{template_name}"
+        # print(f"Шаблона \"{template_name}\" нет в базе. Попробуем найти его в файловой системе.")
+        path_to_template = os.path.join(TEMPLATES[1]['DIRS'][0], template_name)
         if template_name.lower().endswith((".jinja2", ".j2", ".jinja",)):
-            path_to_template = f"{TEMPLATES[0]['DIRS'][0]}/{template_name}"
+            path_to_template = os.path.join(TEMPLATES[0]['DIRS'][0], template_name)
+        # print(f"Полный путь к файлу шаблона: \"{path_to_template}\"")
         try:
             with open(path_to_template, "r", encoding="utf-8") as file:
                 # Шаблон найден в файловой системе... получаем код шаблона...
@@ -197,33 +201,47 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
                     szFileName=template_name, szJinjaCode=template_code,
                     szVar=template_var, szDescription=template_description
                 )
+                # print(f"Шаблона нет в базе, но он есть в файловой системе. Записали его в базу: {q1_template}")
+                if q1_template.szVar is None:
+                    processed_template_var.update({template_name: None})
+                    # print(f"Шаблон есть в файле, но нет szVar: processed_template_var = {processed_template_var}")
+                    # print(f"Нет szVar, некуда положить контекст, а значит и нечего этот контекст получать, выходим.")
+                    # return
         except FileNotFoundError:
             # Шаблон не найден ни в базе, ни в файловой системе. Беда!
             raise TemplateDoesNotExist(f"{path_to_template}")
+    # print(f"Нужно получить контекст для шаблона: \"{template_name}\" в переменную: \"{q1_template.szVar}\"")
     # Получим контекст для этого шаблона. В gather_template_context() присвоение контекстных переменных,
     # в первую очередь, осуществляется на основании директории (каталога), в котором расположен шаблон.
     # Контекст связанный с URL не учитывается (если он есть, то он должен был быть получен функцией снаружи).
     template_folder_name = q1_template.szFileName.split("/")[0]
     if template_folder_name in [FOLD_CASH_TEMPLATES, FOLD_BLOCK_TEMPLATES]:
         # Это шаблон блока или кэша. У них нет контекста.
+        # print(f"Это шаблон блока или кэша: \"{template_name}\". Такие шаблоны не имеют контекста.")
         processed_template_var.update({template_name: None})
     elif template_folder_name == FOLD_MENU_TEMPLATES:
         # Это шаблон для создания меню. Получаем контекст меню из базы
-        q_menu=TbMenu.objects.filter(kMenuTemplateFrom_id=q1_template.id).first()
+        # print(f"Это шаблон для создания меню: \"{template_name}\"")
+        processed_template_var.update({template_name: q1_template.szVar})
+        q_menu = TbMenu.objects.filter(kMenuTemplateFrom_id=q1_template.id).first()
         if q_menu is None:
-            # В таблице TbMenu нет записи о меню, которое использует этот шаблон.
-            processed_template_var.update({template_name: None})
+            # В таблице TbMenu нет записи о меню, которое использует этот шаблон, а значит и нет контекста.
+            processed_var_context.update({q1_template.szVar: None})
+            # print(f"Контекста для меню \"{q1_template.szVar}\" не будет.")
         else:
             contex = get_context_for_menu(q_menu)
-            processed_template_var.update({template_name: q1_template.szVar})
             processed_var_context.update({q1_template.szVar: contex})
+            # print(f"Контекст для меню \"{q1_template.szVar}\": {contex}")
     elif template_folder_name == FOLD_ROLL_TEMPLATES:
         # Это шаблон ролла (который . Получаем контекст ролла из базы
         # Это ролл, который встроен в шаблон
+        # print(f"Это шаблон для создания ролла: \"{template_name}\"")
+        processed_template_var.update({template_name: q1_template.szVar})
         q_roll = TbRoll.objects.filter(kRollTemplate_id=q1_template.id).first()
         if q_roll is None:
             # В таблице TbRoll нет записи о ролле, который использует этот шаблон.
-            processed_template_var.update({template_name: None})
+            # print(f"Ролл \"{q1_template.szVar}\" не найден. А значит и контекста для него невозможно получить.")
+            processed_var_context.update({q1_template.szVar: None})
         else:
             # Надо учесть, что во встроенном ролле могут быть свои фильтрации, сортировки и т.п.
             # Найдем '{# RollCMS_Roll_ItemInPage _число_ #} -- число элементов во встроенном ролле (в коде шаблона)
@@ -245,7 +263,7 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
                 # Это ролл с альтернативным правилом сортировки
                 q_roll.szRollSortRule = match.group(1)
             contex = get_context_for_roll(q_roll)
-            processed_template_var.update({template_name: q1_template.szVar})
+            # print(f"Контекст для ролла \"{q1_template.szVar}\": {contex}")
             processed_var_context.update({q1_template.szVar: contex})
 
         pass
@@ -257,6 +275,7 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
         #  и если один шаблон используется несколькими меню, роллами или элементами, то
         #  можно серьезно запутаться.
         pass
+    # print(f"Общий контекст: processed_var_context = {processed_var_context}")
     # if q1_template.szVar in processed_var_context:
     #     # Хотя шаблон еще не обработан, но переменная szVar уже использована для передачи контекста.
     #     # Поднимаем исключение TemplateSyntaxError (а то может упасть, может не упасть... админ сайта напугается
@@ -283,8 +302,13 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
     includes_and_extends = [match[2] for match in matches]
     for included_template in includes_and_extends:
         # Рекурсивный вызов gather_template_context() для вложенных шаблонов
-        gather_template_context(included_template, processed_var_context, )
-    return processed_var_context
+        # print(f"===\tРекурсивный вызов gather_template_context() для вложенного шаблона: \"{included_template}\"")
+        # print(f"---\tprocessed_var_context = {processed_var_context}")
+        # print(f"---\tprocessed_template_var = {processed_template_var}")
+        gather_template_context(template_name=included_template,
+                                processed_var_context=processed_var_context,
+                                processed_template_var=processed_template_var)
+    return
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -294,7 +318,10 @@ def index(request: HttpRequest) -> HttpResponse:
     :return response: исходящий http-ответ
     """
     try:
-        context = gather_template_context(template_name="index.jinja2")
+        # processed_template_var: dict = None
+        context = dict()
+        gather_template_context(template_name="index.jinja2", processed_var_context=context)
+        # print(f"\n=====\n Общий контекст для шаблона \"index.jinja2\": {context}")
         return render(request, template_name="index.jinja2", context=context)
     except TemplateDoesNotExist as e:
         # Обработка ошибки отсутствия шаблона
@@ -302,87 +329,3 @@ def index(request: HttpRequest) -> HttpResponse:
     except TemplateNotFound as e:
         # Обработка ошибки отсутствия вложенного шаблона
         return HttpResponse(f"RollCSM не нашла производный шаблон \"{e}\". Создайте его.", status=424)
-
-
-def _index(request: HttpRequest,
-          urn_block: str = None,
-          urn_roll: str = None,
-          urn_content: str = None,
-          page: int = 0) -> HttpResponse:
-    """ Универсальный обработчик для всех страниц сайта
-
-    :param request: входящий http-запрос
-    :param urn_block: часть URL для выборки блоков (из таблицы TbBlock)
-    :param urn_roll: часть URL для выборки роллов (из таблицы TbRoll)
-    :param urn_content: часть URL для выборки контента (из таблицы TbContent)
-    :param page: номер страницы (начиная с нуля) для выборки конкретной страницы роллов
-    :return response: исходящий http-ответ
-    """
-    to_template = {"COOKIES": check_cookies(request),
-                   "URN_BLOCK": urn_block,
-                   "URN_ROLL": urn_roll,
-                   "URN_CONTENT": urn_content,
-                   "PAGE": page}
-    if urn_block is None:
-        # пришел запрос на главную страницу -- "/"
-        template = "index.jinja2"  # шаблон
-    elif urn_content is None:
-        # Нет части URL заведующей за контент, значит это "чистый" ролл.
-        # Сначала ПОЛУЧИМ ДАННЫЕ БЛОКА в q_block
-        try:
-            # найдём блок по части URL
-            q_block = TbBlock.objects.get(szBlockSlug=urn_block)
-            if q_block.bRollPublish:
-                # блок опубликован к доступу через URL/URN
-                template = q_block.kRollTemplate.szFileName
-            else:
-                # блок не опубликован, возвращаем 404
-                raise Http404("Возможно, такая страница была, но сейчас её не существует!")
-        except (TbBlock.DoesNotExist, TbBlock.MultipleObjectsReturned):
-            raise Http404("Сто мартышек искали страницу, но её нет!")
-        # ДАННЫЕ БЛОКА ПОЛУЧЕНЫ:
-        # получим данные для ролла (ЗАГОЛОВОК РОЛЛА) в q_roll
-        # и отправим данные ролла в шаблон через переменную приписанную к шаблону
-        to_template.update({q_block.kRollTemplate.szVar: get_roll_data(q_block, urn_roll, page)})
-    else:
-        # есть часть URL заведующая за контент, значит надо готовить данные для контента
-        # ПОКА ЭТА ЧАСТЬ НЕ ГОТОВА
-        template = "__"
-    # поиск в шаблоне "{% include 'file' %}" и рекурсивный обход всех шаблонов
-    # включенных в шаблон
-    # {% include "***" %} и {% extends '***' %}
-    sup_sub_template_list = get_sub_sup_template(template)
-    # пробежим по всем найденным шаблонам
-    for tmpl in sup_sub_template_list:
-        # если шаблон текущей -- пропускаем
-        if tmpl == template:
-            continue
-        # найдем блок, который использует этот шаблон для отображения ролла
-        # если таких блоков (использующих один и тот же шаблон) несколько,
-        # то возьмём с самым маленьким ID!!!
-        # ВАЖНО: если вы хотите использовать один и тот же шаблон для разных блоков,
-        #        то имейте в виду, что для роллов из вложенных шаблонов может
-        #        попасть не то что вы ожидаете!!!
-        q_block_r = TbBlock.objects.filter(kRollTemplate__szFileName=tmpl).order_by("id").first()
-        if q_block_r is not None:
-            # Если блок найден, то получим данные для ролла (т.к. это ролл производного
-            # шаблона, т.е. он встроен в какую-то другую страничку, то пейджинатор
-            # на производном ролле смысла не имеет. Если он есть в шаблоне -- то, хрен
-            # знает как он должен работать! Данные для паджинаторов производных роллов
-            # не формируются. Лучше для производных роллов использовать специальные
-            # шаблоны без паджинторов!!!
-            to_template.update({q_block_r.kRollTemplate.szVar: get_roll_data(q_block_r, urn_roll)})
-            continue
-        # не нашли подходящий ролл, попробуем найти контнент-блок
-        q_block_c = TbBlock.objects.filter(kContentTemplate__szFileName=tmpl).order_by("id").first()
-        if q_block_c is not None:
-            # Если контент найден, то получим данные этого контента
-            print("Найден контент для шаблона: " + tmpl)
-            continue
-
-    print("template =", template)
-    print("sup_sub_template_list =", sup_sub_template_list)
-    print("to_template =", to_template)
-
-    # to_template.update = {"COOKIES": check_cookies(request)}
-    return render(request, template, to_template)
