@@ -155,13 +155,11 @@ MEDIA_URL = 'media/'
 # подключения к базе данных, различные каталоги расположения статических- и медиа-файлов. и т.п.
 MEDIA_ROOT = MY_MEDIA_ROOT
 SITE_ROOT = MY_SITE_ROOT
-if DEBUG:
-    STATICFILES_DIRS = [
-        MY_STATIC_ROOT
-    ]
-else:
+STATICFILES_DIRS = [
+    MY_STATIC_ROOT if DEBUG else ""
+]
+if not DEBUG:
     STATIC_ROOT = MY_STATIC_ROOT
-    STATICFILES_DIRS = list()
 # путь к каталогу static (в эту переменную использовать для указания пути где будут делаться кэш-картинки)
 # STATIC_BASE_PATH = MY_STATIC_BASE_PATH_HOME2
 DATABASES = {
