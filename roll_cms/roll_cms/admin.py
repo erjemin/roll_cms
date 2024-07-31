@@ -3,6 +3,7 @@ from django.contrib import admin
 from django import forms
 from django.db import models
 from django.forms import TextInput, Textarea
+from django.core.cache import cache
 # from ckeditor.widgets import CKEditorWidget
 # from codemirror import CodeMirrorTextarea
 from roll_cms.models import TbTemplate, TbRoll, TbItem, TbMenu, TbMenuPoint
@@ -163,6 +164,8 @@ class RollAdminForm(TypografAdminForm):
         if form_data['szRollUrlTo'] is not None and not form_data['szRollUrlTo'].strip():
             # Поле szRollUrlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szRollUrlTo'] = None
+        # Т.к. это редактирование (или создание) ролла через админку, то обновим кеш
+        cache.clear()
 
     class Meta:
         model = TbRoll
@@ -255,6 +258,8 @@ class ItemAdminForm(TypografAdminForm):
         if form_data['szUrlTo'] is not None and not form_data['szUrlTo'].strip():
             # Поле szUrlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szUrlTo'] = None
+        # Т.к. это редактирование (или создание) элемента через админку, то обновим кеш
+        cache.clear()
 
     class Meta:
         model = TbItem
@@ -349,6 +354,8 @@ class MenuAdminForm(forms.ModelForm):
         form_data: dict = super().clean()
         if form_data['do_cash'] and form_data['kMenuTemplateTo'] is None:
             raise forms.ValidationError('Нельзя создавать кеш-шаблон, если не указано куда его создавать!')
+        # Т.к. это редактирование (или создание) меню через админку, то обновим кеш
+        cache.clear()
 
     class Meta:
         model = TbMenu
@@ -390,6 +397,8 @@ class MenuItemAdminForm(TypografAdminForm):
         if form_data['szPointUtlTo'] is not None and not form_data['szPointUtlTo'].strip():
             # Поле szPointUtlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szPointUtlTo'] = None
+        # Т.к. это редактирование (или создание) пункта меню через админку, то обновим кеш
+        cache.clear()
 
     class Meta:
         model = TbMenu
