@@ -322,6 +322,7 @@ def index(request: HttpRequest) -> HttpResponse:
         context = dict()
         gather_template_context(template_name="index.jinja2", processed_var_context=context)
         # print(f"\n=====\n Общий контекст для шаблона \"index.jinja2\": {context}")
+        context.update({"__all_rollcms_context__": context})
         return render(request, template_name="index.jinja2", context=context)
     except TemplateDoesNotExist as e:
         # Обработка ошибки отсутствия шаблона
