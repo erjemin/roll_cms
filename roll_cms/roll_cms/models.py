@@ -106,7 +106,6 @@ class TbTemplate(models.Model):
         # (или отключить кеширование шаблонов в Django, что замедлит работу сайта)
         with open(TOUCH_RELOAD, "a") as f:
             f.write(log_p(msg=f"TEMPLATE \"{self.szFileName}\" RELOAD", status="OK")+"\n")
-        cache.clear()
         super(TbTemplate, self).save(*args, **kwargs)
 
     # переопределяем метод delete() (пока, не удаляется)

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 from django import forms
-from django.db import models
-from django.forms import TextInput, Textarea
 from django.core.cache import cache
+from django.db import transaction
+# from django.db import models
+# from django.forms import TextInput, Textarea
 # from ckeditor.widgets import CKEditorWidget
 # from codemirror import CodeMirrorTextarea
 from roll_cms.models import TbTemplate, TbRoll, TbItem, TbMenu, TbMenuPoint
@@ -45,6 +46,22 @@ cm_js = [
 ]
 
 
+# Миксин для очистки кеша после сохранения модели
+class CacheClearMixin:
+    # При сохранении после редактирования
+    def save_model(self, request, obj, form, change):
+        if change:
+            cache.clear()
+        super().save_model(request, obj, form, change)
+
+    # При сохранении при групповом редактировании
+    def save_related(self, request, form, formsets, change):
+        with transaction.atomic():
+            super().save_related(request, form, formsets, change)
+            if change:
+                cache.clear()
+
+
 # ОПИСАНИЯ КЛАССОВ АДМИНКИ
 # -- ШАБЛОНЫ {Т}
 # -- Форма для админки шаблонов с подключением codemirror для редактирования шаблонов Django и Jinja2
@@ -59,7 +76,7 @@ class TemplateAdminForm(forms.ModelForm):
 
 # -- Админка шаблонов
 @admin.register(TbTemplate)
-class AdminTemplate(admin.ModelAdmin):
+class AdminTemplate(CacheClearMixin, admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
         css = cm_css  # подключаемые CSS
@@ -164,8 +181,6 @@ class RollAdminForm(TypografAdminForm):
         if form_data['szRollUrlTo'] is not None and not form_data['szRollUrlTo'].strip():
             # Поле szRollUrlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szRollUrlTo'] = None
-        # Т.к. это редактирование (или создание) ролла через админку, то обновим кеш
-        cache.clear()
 
     class Meta:
         model = TbRoll
@@ -180,7 +195,7 @@ class RollAdminForm(TypografAdminForm):
 
 # -- Админка роллов
 @admin.register(TbRoll)
-class AdminRoll(admin.ModelAdmin):
+class AdminRoll(CacheClearMixin, admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
         css = cm_css  # подключаемые CSS
@@ -258,8 +273,6 @@ class ItemAdminForm(TypografAdminForm):
         if form_data['szUrlTo'] is not None and not form_data['szUrlTo'].strip():
             # Поле szUrlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szUrlTo'] = None
-        # Т.к. это редактирование (или создание) элемента через админку, то обновим кеш
-        cache.clear()
 
     class Meta:
         model = TbItem
@@ -275,7 +288,7 @@ class ItemAdminForm(TypografAdminForm):
 
 
 @admin.register(TbItem)
-class AdminItem(admin.ModelAdmin):
+class AdminItem(CacheClearMixin, admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
         css = cm_css  # подключаемые CSS
@@ -354,8 +367,6 @@ class MenuAdminForm(forms.ModelForm):
         form_data: dict = super().clean()
         if form_data['do_cash'] and form_data['kMenuTemplateTo'] is None:
             raise forms.ValidationError('Нельзя создавать кеш-шаблон, если не указано куда его создавать!')
-        # Т.к. это редактирование (или создание) меню через админку, то обновим кеш
-        cache.clear()
 
     class Meta:
         model = TbMenu
@@ -363,7 +374,7 @@ class MenuAdminForm(forms.ModelForm):
 
 
 @admin.register(TbMenu)
-class AdminMenu(admin.ModelAdmin):
+class AdminMenu(CacheClearMixin, admin.ModelAdmin):
     form = MenuAdminForm
     list_display = ('id', 'szMenuName', 'kMenuTemplateFrom', 'kMenuTemplateTo')
     list_display_links = ('id', 'szMenuName', 'kMenuTemplateFrom', 'kMenuTemplateTo')
@@ -397,8 +408,6 @@ class MenuItemAdminForm(TypografAdminForm):
         if form_data['szPointUtlTo'] is not None and not form_data['szPointUtlTo'].strip():
             # Поле szPointUtlTo пустое или состоит только из пробелов (пробельных символов)
             form_data['szPointUtlTo'] = None
-        # Т.к. это редактирование (или создание) пункта меню через админку, то обновим кеш
-        cache.clear()
 
     class Meta:
         model = TbMenu
@@ -410,7 +419,7 @@ class MenuItemAdminForm(TypografAdminForm):
 
 
 @admin.register(TbMenuPoint)
-class AdminMenuPoint(admin.ModelAdmin):
+class AdminMenuPoint(CacheClearMixin, admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
         css = cm_css  # подключаемые CSS
