@@ -1,0 +1,58 @@
+{# RollCMS_description Базовый (обёртка) #}<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>ФГУП РСВО: {% block Title %}{% endblock %}</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="content-language" content="ru" />
+  <meta http-equiv="Date" content="{% block Date4Meta %}{% now 'c' %}{% endblock %}" />
+  <meta http-equiv="Last-Modified" content="{% block Last4Meta %}{% now 'c' %}{% endblock %}" />
+  <meta http-equiv="Expires" content="{% block Expires4Meta %}{% now 'c' %}{% endblock %}" />
+  <meta http-equiv="Cache-Control" content="public">
+  <meta http-equiv="Pragma" content="public">
+  <meta http-equiv="cleartype" content="on" />
+  <meta name="viewport" content="width=device-width, initial-scale=0.75" />
+  <meta name="description" content="{% block Description %}{% endblock %}" />
+  <meta name="keywords" content="{% block Keywords %}{% endblock %}" />
+  <meta name="copyright" lang="ru" content="rollCMS{% block CopyrightAuthor4Meta %}{% endblock %}." />
+  <meta name="author" lang="ru" content="Сергей Еремин (код: python, html, css, js)">
+  <meta name="robots" content="index,follow" />
+  <meta name="revisit-after" content="15 days">
+  <meta name="document-state" content="{{ META_DOCUMENT_STATE or 'Dynamic' }}" />
+  <meta name="format-detection" content="telephone=no" />
+  {# <!-- Favicons --> #}<link rel="icon" type="image/svg+xml" href="{{ static('svg/favicon.svg') }}" />
+  <link rel="icon" type="image/png" href="{{ static('img/favicon.png') }}" />
+  <link rel="shortcut icon" type="image/x-icon" href="{{ static('img/favicon.ico') }}" />
+  <link rel="apple-touch-icon" href="{{ static('img/favicon.png') }}" />
+  {# <!-- css -->#}<link rel="stylesheet" href="{{ static('bootstrap-5.3.3-dist/css/bootstrap.min.css') }}" />
+  <link rel="stylesheet" href="{{ static('fontawesome-free-6.5.2-web/css/all.min.css')}}" />
+  <link rel="stylesheet" href="{{ static('css/redef_over.css') }}" />{% block META_OG %}{% endblock %}
+  <meta name="generator" content="rollCMS 0.1β" />{# <meta name="generator" content="Microsoft FrontPage 1.0" /> #}
+</head>
+<body>{% block BODY %}
+  {% block Top_CSS1 %}{% endblock Top_CSS1 %}{% block Top_CSS2 %}{% endblock Top_CSS2 %}{% block Top_CSS3 %}{% endblock Top_CSS3 %}{% block CONTENT %}{% endblock CONTENT %}
+  
+  <script type="text/javascript" src="{{ static('js/jquery-3.7.1.min.js') }}"></script>
+  <script type="text/javascript" src="{{ static('bootstrap-5.3.3-dist/js/bootstrap.min.js') }}"></script>
+  
+  {# ВЕРХНЕЕ ВЕНЮ #}<div id="menu-top1" class="container">
+    <nav class="col-12 navbar navbar-expand fixed-top py-0 my-0 d-block" id="nav_top_menu1">{% include "menus/main-menu-1.jinja2" %}</nav>
+    <nav class="col-12 navbar navbar-expand fixed-top my-0 py-0 to-90" id="nav_top_menu2">{% include "menus/main-menu-2.jinja2" %}</nav>
+  </div>
+  <script type="text/javascript">
+  $(window).scroll(function() {
+    var scroll = $(window).scrollTop();
+    // alert(scroll) ;
+    if (scroll > 50) { // 50px - это примерное значение, при котором первый ряд должен исчезнуть
+      $("nav#nav_top_menu1").addClass("to-hide").removeClass('to-show');
+      $("nav#nav_top_menu2").addClass("to-00").removeClass('to-90');
+      // $('nav#nav_top_menu1').hide();
+    } else {
+      $('nav#nav_top_menu1').addClass('to-show').removeClass('to-hide');
+      $("nav#nav_top_menu2").addClass("to-90").removeClass('to-00');
+    }
+  });
+  </script>{# /ВЕРХНЕЕ ВЕНЮ #}
+  {# СПРОСИТЬ ПРО КУКИ #}{% if not COOKIES %}{% include "blocks/accept-cookies.jinja2" %}{% endif %}{# /СПРОСИТЬ ПРО КУКИ #}
+  {% block Top_JS1 %}{% endblock Top_JS1 %}{% block Top_JS2 %}{% endblock Top_JS2 %}{% block Top_JS3 %}{% endblock Top_JS3 %}{% endblock BODY %}</body>
+</html>
