@@ -35,12 +35,16 @@ urlpatterns = [
     # # https://githubhelp.com/nephila/django-ckeditor-filebrowser-filer/issues/41
     # re_path(r'^filebrowser_filer/filer_', include('ckeditor_filebrowser_filer.urls')),
 
+    # Админка по нестандартному адресу! По стандартному адресу установить ловушку для ботов на уровне nginx и fail2ban
     path('ad-min/', admin.site.urls),
 
+    # Главная страница
     re_path(r'^$', views.index),
-    # универсальный обработчик
-    # re_path(r'^(?P<urn_block>[^/]*)/*$', views.index),
-    # re_path(r'^(?P<urn_block>[^/]*)/*(?P<urn_roll>[^/]*)/*$', views.index),
+    # Универсальный обработчик URN
+    re_path(rf'^(?P<urn_chain>({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM})\d+-\S+)$', views.universal_processor),
+    # в будущем будет универсальный обработчик с обработкой тегов
+    # re_path(rf'^(?P<urn_chain>({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM}|{URL_PREFIX_TAGG})\d+-[\s\S]+)$',
+    #         views.universal_processor),
 ]
 
 # handler404 = 'web.views.handler404'
