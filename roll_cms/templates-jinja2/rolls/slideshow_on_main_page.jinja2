@@ -1,0 +1,29 @@
+{# RollCMS_var main_slides #}
+{# RollCMS_description Слайд шоу на главной странице #}
+{# RollCMS_RollItemIn 4 #}
+{# RollCMS_RollFilterRule kImg__isnull=False,bPublish=True #}
+{# RollCMS_RollSortRule ? #}
+<div class="container">
+  <div id="index-slider" class="carousel slide carousel-fade" data-bs-ride="carousel">
+    <div class="carousel-indicators">{% for item in main_slides.items %}
+      <button type="button" data-bs-target="#index-slider" data-bs-slide-to="{{ loop.index0 }}"{% if loop.first %} class="active" aria-current="true"{% endif %} aria-label="{{ item.szTitle }}"></button>{% endfor %}
+    </div>
+    <div class="carousel-inner">{% for item in main_slides.items %}
+      <div class="carousel-item{% if loop.first %} active{% endif %}">
+        <img src="{{ item.kImg.url }}" class="d-block w-100" alt="{{ item.szTitle }}" />
+        <div class="carousel-caption d-none d-md-block">
+          <h2>{{ item.szTitle|safe }}</h2>
+          <p>{{ item.szNote|safe }}</p>
+        </div>
+      </div>{% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#index-slider" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#index-slider" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>

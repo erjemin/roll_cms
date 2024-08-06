@@ -37,13 +37,13 @@
   
   {# ВЕРХНЕЕ ВЕНЮ #}<div id="menu-top1" class="container">
     <nav class="col-12 navbar navbar-expand fixed-top py-0 my-0 d-block" id="nav_top_menu1">{% include "menus/main-menu-1.jinja2" %}</nav>
-    <nav class="col-12 navbar navbar-expand fixed-top my-0 py-0 to-90" id="nav_top_menu2">{% include "menus/main-menu-2.jinja2" %}</nav>
+    <nav class="col-12 navbar navbar-expand fixed-top my-0 py-0 to-90 d-flex flex-column" id="nav_top_menu2">{% include "menus/main-menu-2.jinja2" %}</nav>
   </div>
   <script type="text/javascript">
   $(window).scroll(function() {
     var scroll = $(window).scrollTop();
     // alert(scroll) ;
-    if (scroll > 50) { // 50px - это примерное значение, при котором первый ряд должен исчезнуть
+    if (scroll > 50) { // 50px - это примерное значение, при котором #nav_top_menu1 (0первый ряд меню) должен исчезнуть
       $("nav#nav_top_menu1").addClass("to-hide").removeClass('to-show');
       $("nav#nav_top_menu2").addClass("to-00").removeClass('to-90');
       // $('nav#nav_top_menu1').hide();

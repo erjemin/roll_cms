@@ -8,7 +8,7 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.http import Http404  # , request
 from django.utils.timezone import now
-from jinja2.exceptions import TemplateNotFound, TemplateSyntaxError
+from jinja2.exceptions import TemplateNotFound, TemplateSyntaxError, UndefinedError
 from typing import Optional, Dict
 from roll_cms.models import TbTemplate, TbMenu, TbMenuPoint, TbRoll, TbItem
 from roll_cms.add_function import *
@@ -145,7 +145,11 @@ def get_context_for_roll(q_roll: QuerySet = None, roll_id: int = None, processed
     # Используем возможность вызова .order_by() в ORM Django без аргументов (это сбрасывает более ранние сортировки)
     order_by_args = q_roll.szRollSortRule.split(",") if q_roll.szRollSortRule is not None else None
     # добавим в QuerySet q_roll все элементы, которые соответствуют фильтрации и сортировке (и срез)
-    q_roll.items = TbItem.objects.filter(**filter_args_value).order_by(*order_by_args)[:q_roll.iRollItemInPage]
+    if q_roll.iRollItemInPage is None or q_roll.iRollItemInPage < 1:
+        # В ролле не указано количество элементов на странице, поэтому берем все элементы
+        q_roll.items = TbItem.objects.filter(**filter_args_value).order_by(*order_by_args)
+    else:
+        q_roll.items = TbItem.objects.filter(**filter_args_value).order_by(*order_by_args)[:q_roll.iRollItemInPage]
     return q_roll
 
 
@@ -262,7 +266,7 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
             if match is not None:
                 # Это ролл с альтернативным правилом сортировки
                 q_roll.szRollSortRule = match.group(1)
-            contex = get_context_for_roll(q_roll)
+            contex = get_context_for_roll(q_roll=q_roll)
             # print(f"Контекст для ролла \"{q1_template.szVar}\": {contex}")
             processed_var_context.update({q1_template.szVar: contex})
 
@@ -314,7 +318,7 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
 def index(request: HttpRequest) -> HttpResponse:
     """ Тест индексной страницы
 
-    :param
+    :param request: http-запрос
     :return response: исходящий http-ответ
     """
     try:
@@ -330,3 +334,79 @@ def index(request: HttpRequest) -> HttpResponse:
     except TemplateNotFound as e:
         # Обработка ошибки отсутствия вложенного шаблона
         return HttpResponse(f"RollCSM не нашла производный шаблон \"{e}\". Создайте его.", status=424)
+
+
+def universal_processor(request: HttpRequest, urn_chain: str) -> HttpResponse:
+    """ Универсальный обработчик
+
+    :param request: http-запрос
+    :param urn_chain: URN (полная цепочка .../.../... и т.д.)
+    :return response: исходящий http-ответ
+    """
+    processed_var_context = dict()
+    processed_template_var = dict()
+    breadcrumbs = urn_chain.split("/")
+    last_of_breadcrumbs = breadcrumbs[-1]
+    match = re.search(pattern=rf"({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM})(\d+)-\S+", string=last_of_breadcrumbs)
+    # match = re.search(pattern=rf"({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM}|{URL_PREFIX_TAGG})(\d+)-\S+",
+    #                   string=last_of_breadcrumbs)
+    if match.group(1) == URL_PREFIX_ROLL:
+        # print(f"Это URN для отображения ролла с ID = {match.group(2)}")
+        roll_id = int(match.group(2))
+        q_roll = TbRoll.objects.get(pk=roll_id)
+        try:
+            if q_roll.bRollPublish is False:
+                # Ролл не опубликован
+                return HttpResponse(content=f"RollCSM не может отобразить ролл c id={roll_id}, т.к. он не опубликован.",
+                                    status=424)
+            template_name = q_roll.kRollTemplate.szFileName  # т.к. в Django запрос "ленивые", то так тоже работает.
+            var = q_roll.kRollTemplate.szVar
+        except TbRoll.DoesNotExist as e:
+            # Ролл не найден
+            return HttpResponse(content=f"RollCSM не нашла ролла c id={roll_id})."
+                                        f"Создайте его через панель администрирования.<br /> <br />{e}", status=424)
+        except (AttributeError, TemplateDoesNotExist, TemplateNotFound, ) as e:
+            # Ролл найден, но шаблон не найден
+            # TODO: Возможно стоит сделать проверку, есть-ли шаблон в файловой системе и перенести его в базу.
+            #       Для этого на придумать способ автоматического наименования шаблонов (как-то связанного со Slug.
+            #       Но предварительно надо придумать способ автоматической заливки данных в базу (иначе, без данных базе
+            #       нельзя будет даже понять, что есть такой ролл и надо создать его шаблон).
+            return HttpResponse(content=f"RollCSM не нашла шаблон для ролла \"{q_roll.szRollName}\" (id={roll_id})."
+                                        f"<br />Создайте его.<br /> <br />{e}", status=424)
+        processed_template_var.update({template_name: var})
+        if var is None or not var.strip():
+            # У этого ролла нет переменой для передачи контекста, а значит и контекст не нужен!
+            print(f"Для ролла \"{roll_id}\" контекст не нужен.")
+            pass
+        else:
+            context = get_context_for_roll(q_roll=q_roll)
+            processed_var_context.update({var: context})
+        # теперь нужно собрать остальной контекст из вложенных шаблонов (если они есть).
+        gather_template_context(template_name=template_name,
+                                processed_var_context=processed_var_context,
+                                processed_template_var=processed_template_var)
+        try:
+            # print(f"Контекст для ролла \"{roll_id}\": {processed_var_context}")
+            # print(template_name)
+            # print(var)
+            processed_var_context.update({"__all_rollcms_context__": processed_var_context})
+            return render(request, template_name=template_name, context=processed_var_context)
+        except UndefinedError as e:
+            # Неизвестная ошибка
+            return HttpResponse(content=f"RollCSM не может отобразить ролл c id={roll_id}, т.к. произошла ошибка.<br />"
+                                        f"Шаблон: \"{template_name}\" не нашел контекста в переменной.<br />"
+                                        f"<br /> <br />{e}", status=424)
+    elif match.group(1) == URL_PREFIX_ITEM:
+        # Это элемент
+        print("Это элемент с ID =", match.group(2))
+    # elif match.group(1) == URL_PREFIX_TAGG:
+    #     # Это тег
+    #     print("Это тег с ID =", match.group(2))
+    else:
+        # Неизвестный тип
+        pass
+    print(f"breadcrumbs: {breadcrumbs}, last = {breadcrumbs[-1]}")
+    return HttpResponseRedirect('/')
+
+
+

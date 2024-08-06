@@ -1,0 +1,45 @@
+{# RollCMS_var top_menu2 #}{# RollCMS_description Главное меню (2) #}
+    <div class="container">
+      <ul class="navbar-nav mt-0 py-2 w-100">{% for point in top_menu2.menu %}{% if point.bPointPublish %}
+        <li class="nav-item{% if loop.index0 < 3 %} d-inline{% elif loop.index0 < 4 %} d-none d-sm-inline{% elif loop.index0 < 5 %} d-none d-md-inline{% elif loop.index0 < 6 %} d-none d-lg-inline{% elif loop.index0 < 7 %} d-none d-xl-inline{% elif loop.index0 >= 7 %} d-none{% endif %} px-3">
+          <a class="nav-link menu-hovered" aria-current="page" href="#" title="{% if point.szPointUtlTo %}{{ point.szPointUtlTo }}{% else %}#{% endif %}" onclick="expander_top_menu2(roll_as_menu='{% if point.szPointUtlTo %}{{ point.szPointUtlTo }}{% else %}#{% endif %}', uniq={{ loop.index  }}, event);">
+            {{ point.szPointTitle|safe }}
+          </a>
+        </li>{% endif %}{% endfor %}
+      </ul>
+    </div>
+    <div class="container">
+      <div class="navbar-nav py-2 px-4 w-100 d-none" style="background: #ff666666; transition: all 1.7s;" id="expand-top-menu2">
+        <p class="nav-item">
+            Хвост
+        </p>
+      </div>
+    </div>
+
+
+{% block Top_JS3 %}
+  <script type="text/javascript">
+  let g_uniq = 0;
+  function expander_top_menu2(roll_as_menu='#', uniq=0, event) {
+    event.preventDefault(); // Предотвращаем стандартное поведение (чтобы не проматывалось вверх)
+    let _top_menu2 = $("#expand-top-menu2")
+    if (g_uniq !== uniq) {
+      // Это клик на другом пункте меню
+      _top_menu2.addClass('d-none');
+      g_uniq = uniq;
+      _top_menu2.removeClass('d-none');
+    }
+    else {
+      // Это клик на том же пункте меню
+      if (_top_menu2.hasClass('d-none')) 
+        _top_menu2.removeClass('d-none'); // Показываем расширенное меню
+      else 
+        _top_menu2.addClass('d-none'); // Скрываем расширенное меню
+    }
+    $("#expand-top-menu2 > .nav-item").html(roll_as_menu+'<br>uniq='+uniq);
+  }
+  </script>
+{% endblock Top_JS3 %}
+{#      <div class="navbar-nav mt-0 mb-2 w-100" style="border: yellow solid 1px; background: #ff9999cc; height: 300px; display: block; left: 0">#}
+{#        БЛОК ВЫКИДНОГО МЕНЮ#}
+{#      </div>#}

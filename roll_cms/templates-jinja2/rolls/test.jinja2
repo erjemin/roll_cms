@@ -1,0 +1,33 @@
+{# RollCMS_var  #}
+{# RollCMS_description -ТЕСТ-РОЛЛ- #}
+{# RollCMS_ItemInRoll 3 #}
+    <h2>Весь контекст:</h2>
+    <dl>
+      {% for key, var in __all_rollcms_context__.items() %}
+        <dt class="font-monospace">{{ key }}</dt>
+        <dd class="ps-4 font-monospace">{{ var }}</dd>
+      {% endfor %}
+    </dl>
+    <h2>А что есть в этом ролле:</h2>
+    {{ test }}
+    <p>что-то (szRollSlug): {% if test.szRollSlug %}{{ test.szRollSlug }}{% else %}Нету{% endif %}</p>
+    <p>что-то (jRollOldSlugs): {% if test.jRollOldSlugs %}{{ test.jRollOldSlugs }}{% else %}Нету{% endif %}</p>
+    <p>что-то (szRollName): {% if test.szRollName %}{{ test.szRollName }}{% else %}Нету{% endif %}</p>
+    <p>что-то (bRollPublish): {% if test.bRollPublish %}{{ test.bRollPublish }}{% else %}Нету{% endif %}</p>
+    <p>что-то (kRollTemplate): {% if test.kRollTemplate %}{{ test.kRollTemplate }}{% else %}Нету{% endif %}</p>
+    <p>что-то (kDefaultContentTemplate): {% if test.kDefaultContentTemplate %}{{ test.kDefaultContentTemplate }}{% else %}Нету{% endif %}</p>
+    <p>что-то (iRollItemInPage): {{ test.iRollItemInPage }}</p>
+    <p>что-то (szRollFilterRule): {{ test.szRollFilterRule }}</p>
+    <p>что-то (szRollTitle): {% if test.szRollTitle %}{{ test.szRollTitle|safe }} / {{ test.szRollTitle }}{% else %}Нету{% endif %}</p>
+    <p>Картинка превью (test.kRollImgPreview.url): {% if test.kRollImgPreview %}{{ test.kRollImgPreview.url }}{% else %}Нету{% endif %}</p>
+    <p>что-то (szRollText): {% if test.szRollText %}{{ test.szRollText }}{% else %}Нету{% endif %}</p>
+    <p>что-то (szRollUrlTo): {% if test.szRollUrlTo %}{{ test.szRollUrlTo }}{% else %}Нету{% endif %}</p>
+    <p>что-то (kRollToParentRoll): {% if test.kRollToParentRoll %}{{ test.kRollToParentRoll }}{% else %}Нету{% endif %}</p>
+    <p>что-то (dtRollCreate): {% if test.dtRollCreate %}{{ test.dtRollCreate }}{% else %}Нету{% endif %}</p>
+    <p>что-то (dtRollTimeStamp): {% if test.dtRollTimeStamp %}{{ test.dtRollTimeStamp }}{% else %}Нету{% endif %}</p>
+    <dl>
+      {% for item in test.items %}
+        <dt>{{ item.szTitle|safe }}</dt>
+        <dd>{{ item.szSlug }}</dd>
+      {% endfor %}
+    </dl>

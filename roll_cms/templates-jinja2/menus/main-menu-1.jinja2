@@ -1,0 +1,25 @@
+{# RollCMS_var top_menu1 #}{# RollCMS_description Главное меню (1) #}
+    <div class="container">
+      <div class="navbar-brand py-2 my-0">
+        <a href="/" class="text-nowrap"><nobr><img src="{{ static('img/logo.svg') }}" class="me-5 navbar-text d-inline" alt="Логоти" /><img src="{{ static('img/logo_1933y.svg') }}" alt="Российские сети вещания и оповещения. Основано в 1933 году" class="navbar-text d-none d-xl-inline" /></nobr></a>
+      </div>
+      <div class="_collapse _navbar-collapse">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">{% for point in top_menu1.menu %}{% if point.bPointPublish %}
+          <li class="nav-item{% if loop.index0 == 0 %} d-inline{% elif loop.index0 == 1 %} d-none d-sm-inline{% elif loop.index0 == 2 %} d-none d-md-inline{% elif loop.index0 == 3 %} d-none d-lg-inline{% elif loop.index0 == 4 %} d-none d-xl-inline{% elif loop.index0 > 4 %} d-none{% endif %}">
+            <a class="nav-link menu-hovered" aria-current="page" href="{{ point.szPointUtlTo }}">
+              {{ point.szPointTitle|safe }}
+            </a>
+          </li>{% endif %}{% endfor %}
+          <li class="nav-item d-inline">
+            <a class="nav-link" aria-current="page" href="#">
+              <i class="fa-solid fa-bars"></i>
+            </a>
+          </li>
+          <li class="nav-item d-inline">
+            <a class="nav-link pe-4" aria-current="page" href="#">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>

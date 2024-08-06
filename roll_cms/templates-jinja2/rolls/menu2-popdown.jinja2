@@ -1,0 +1,35 @@
+{# RollCMS_var menu2_popdown #}
+{# RollCMS_description Главное меню (2+ pop-down) #}
+{# RollCMS_ItemInRoll 0 #}
+{# RollCMS_RollFilterRule bPublish=True #}
+{# RollCMS_RollSortRule iSort #}
+    <h2>Весь контекст:</h2>
+    <dl>
+      {% for key, var in __all_rollcms_context__.items() %}
+        <dt class="font-monospace">{{ key }}</dt>
+        <dd class="ps-4 font-monospace">{{ var }}</dd>
+      {% endfor %}
+    </dl>
+    <h2>А что есть в этом ролле:</h2>
+    {{ menu2_popdown }}
+    <p>что-то (szRollSlug): {% if menu2_popdown.szRollSlug %}{{ menu2_popdown.szRollSlug }}{% else %}Нету{% endif %}</p>
+    <p>что-то (jRollOldSlugs): {% if menu2_popdown.jRollOldSlugs %}{{ menu2_popdown.jRollOldSlugs }}{% else %}Нету{% endif %}</p>
+    <p>что-то (szRollName): {% if menu2_popdown.szRollName %}{{ menu2_popdown.szRollName }}{% else %}Нету{% endif %}</p>
+    <p>что-то (bRollPublish): {% if menu2_popdown.bRollPublish %}{{ menu2_popdown.bRollPublish }}{% else %}Нету{% endif %}</p>
+    <p>что-то (kRollTemplate): {% if menu2_popdown.kRollTemplate %}{{ menu2_popdown.kRollTemplate }}{% else %}Нету{% endif %}</p>
+    <p>что-то (kDefaultContentTemplate): {% if menu2_popdown.kDefaultContentTemplate %}{{ menu2_popdown.kDefaultContentTemplate }}{% else %}Нету{% endif %}</p>
+    <p>что-то (iRollItemInPage): {{ menu2_popdown.iRollItemInPage }}</p>
+    <p>что-то (szRollFilterRule): {{ menu2_popdown.szRollFilterRule }}</p>
+    <p>что-то (szRollTitle): {% if menu2_popdown.szRollTitle %}{{ menu2_popdown.szRollTitle|safe }} / {{ menu2_popdown.szRollTitle }}{% else %}Нету{% endif %}</p>
+    <p>Картинка превью (menu2_popdown.kRollImgPreview.url): {% if menu2_popdown.kRollImgPreview %}{{ menu2_popdown.kRollImgPreview.url }}{% else %}Нету{% endif %}</p>
+    <p>что-то (szRollText): {% if menu2_popdown.szRollText %}{{ menu2_popdown.szRollText }}{% else %}Нету{% endif %}</p>
+    <p>что-то (szRollUrlTo): {% if menu2_popdown.szRollUrlTo %}{{ menu2_popdown.szRollUrlTo }}{% else %}Нету{% endif %}</p>
+    <p>что-то (kRollToParentRoll): {% if menu2_popdown.kRollToParentRoll %}{{ menu2_popdown.kRollToParentRoll }}{% else %}Нету{% endif %}</p>
+    <p>что-то (dtRollCreate): {% if menu2_popdown.dtRollCreate %}{{ menu2_popdown.dtRollCreate }}{% else %}Нету{% endif %}</p>
+    <p>что-то (dtRollTimeStamp): {% if menu2_popdown.dtRollTimeStamp %}{{ menu2_popdown.dtRollTimeStamp }}{% else %}Нету{% endif %}</p>
+    <dl>
+      {% for item in menu2_popdown.items %}
+        <dt>{{ item.szTitle|safe }}</dt>
+        <dd>{{ item.szSlug }}</dd>
+      {% endfor %}
+    </dl>
