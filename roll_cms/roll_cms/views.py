@@ -359,25 +359,25 @@ def index(request: HttpRequest) -> HttpResponse:
         return HttpResponse(f"RollCSM не нашла производный шаблон \"{e}\". Создайте его.", status=424)
 
 
-def universal_processor(request: HttpRequest, urn_chain: str) -> HttpResponse:
+def universal_processor(request: HttpRequest, url_chain: str) -> HttpResponse:
     """ Универсальный обработчик
 
     :param request: http-запрос
-    :param urn_chain: URN (полная цепочка .../.../... и т.д.)
+    :param url_chain: URN (полная цепочка .../.../... и т.д.)
     :return response: исходящий http-ответ
     """
     processed_var_context = dict()
     processed_template_var = dict()
-    breadcrumbs = urn_chain.split("/")
+    template_name = str()
+    breadcrumbs = url_chain.split("/")
     last_of_breadcrumbs = breadcrumbs[-1]
-    match = re.search(pattern=rf"({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM})(\d+)-\S+", string=last_of_breadcrumbs)
-    # match = re.search(pattern=rf"({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM}|{URL_PREFIX_TAGG})(\d+)-\S+",
-    #                   string=last_of_breadcrumbs)
+    match = re.search(pattern=rf"({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM}|{URL_PREFIX_TAGG})(\d+)-\S+",
+                      string=last_of_breadcrumbs)
     if match.group(1) == URL_PREFIX_ROLL:
         # print(f"Это URN для отображения ролла с ID = {match.group(2)}")
         roll_id = int(match.group(2))
-        q_roll = TbRoll.objects.get(pk=roll_id)
         try:
+            q_roll = TbRoll.objects.get(pk=roll_id)
             if q_roll.bRollPublish is False:
                 # Ролл не опубликован
                 return HttpResponse(content=f"RollCSM не может отобразить ролл c id={roll_id}, т.к. он не опубликован.",
@@ -386,7 +386,7 @@ def universal_processor(request: HttpRequest, urn_chain: str) -> HttpResponse:
             var = q_roll.kRollTemplate.szVar
         except TbRoll.DoesNotExist as e:
             # Ролл не найден
-            return HttpResponse(content=f"RollCSM не нашла ролла c id={roll_id})."
+            return HttpResponse(content=f"RollCSM не нашла ролла c id={roll_id}.<br />"
                                         f"Создайте его через панель администрирования.<br /> <br />{e}", status=424)
         except (AttributeError, TemplateDoesNotExist, TemplateNotFound, ) as e:
             # Ролл найден, но шаблон не найден
@@ -394,39 +394,44 @@ def universal_processor(request: HttpRequest, urn_chain: str) -> HttpResponse:
             #       Для этого на придумать способ автоматического наименования шаблонов (как-то связанного со Slug.
             #       Но предварительно надо придумать способ автоматической заливки данных в базу (иначе, без данных базе
             #       нельзя будет даже понять, что есть такой ролл и надо создать его шаблон).
-            return HttpResponse(content=f"RollCSM не нашла шаблон для ролла \"{q_roll.szRollName}\" (id={roll_id})."
-                                        f"<br />Создайте его.<br /> <br />{e}", status=424)
+            return HttpResponse(content=f"RollCSM не нашла шаблон для ролла c id={roll_id}.<br />"
+                                        f"Создайте его.<br /> <br />{e}", status=424)
         processed_template_var.update({template_name: var})
         if var is None or not var.strip():
             # У этого ролла нет переменой для передачи контекста, а значит и контекст не нужен!
             print(f"Для ролла \"{roll_id}\" контекст не нужен.")
             pass
         else:
+            breadcrumbs[-1] = f"{URL_PREFIX_ROLL}{roll_id}-{q_roll.szRollSlug}"
             context = get_context_for_roll(q_roll=q_roll)
             processed_var_context.update({var: context})
-        # теперь нужно собрать остальной контекст из вложенных шаблонов (если они есть).
-        gather_template_context(template_name=template_name,
-                                processed_var_context=processed_var_context,
-                                processed_template_var=processed_template_var)
-        try:
-            # print(f"Контекст для ролла \"{roll_id}\": {processed_var_context}")
-            # print(template_name)
-            # print(var)
-            processed_var_context.update({"__all_rollcms_context__": processed_var_context})
-            return render(request, template_name=template_name, context=processed_var_context)
-        except UndefinedError as e:
-            # Неизвестная ошибка
-            return HttpResponse(content=f"RollCSM не может отобразить ролл c id={roll_id}, т.к. произошла ошибка.<br />"
-                                        f"Шаблон: \"{template_name}\" не нашел контекста в переменной.<br />"
-                                        f"<br /> <br />{e}", status=424)
+
     elif match.group(1) == URL_PREFIX_ITEM:
         # Это элемент
-        print("Это элемент с ID =", match.group(2))
-    # elif match.group(1) == URL_PREFIX_TAGG:
-    #     # Это тег
-    #     print("Это тег с ID =", match.group(2))
-    else:
-        # Неизвестный тип
-        pass
-    print(f"breadcrumbs: {breadcrumbs}, last = {breadcrumbs[-1]}")
-    return HttpResponseRedirect('/')
+        return HttpResponse(content=f"RollCSM пока не обрабатывает элементы", status=424)
+    elif match.group(1) == URL_PREFIX_TAGG:
+        # Это тег
+        return HttpResponse(content=f"RollCSM пока не обрабатывает теги", status=424)
+
+    # теперь нужно собрать остальной контекст из вложенных в template_name шаблонов.
+    gather_template_context(template_name=template_name,
+                            processed_var_context=processed_var_context,
+                            processed_template_var=processed_template_var)
+    try:
+        processed_var_context.update({"__all_rollcms_context__": processed_var_context})
+        # TODO: Надо сделать обработку breadcrumbs (хлебных крошек), чтобы в шаблон передать корректный список словарей
+        #       с именем и url каждой "крошки"
+        #
+        url_chain = f"/{'/'.join(breadcrumbs)}"   # исправленная последнее звено цепочки URL (c '/' в начале)
+        # print(url_chain)
+        processed_var_context.update({"__URL_CHAIN": url_chain,
+                                      "__URL_PREFIX_ROLL": URL_PREFIX_ROLL,
+                                      "__URL_PREFIX_ITEM": URL_PREFIX_ITEM,
+                                      "__URL_PREFIX_TAGG": URL_PREFIX_TAGG,
+                                      })
+        return render(request, template_name=template_name, context=processed_var_context)
+    except UndefinedError as e:
+        # Неизвестная ошибка
+        return HttpResponse(content=f"RollCSM не может отобразить шаблон: \"{template_name}\"<br />"
+                                    f"Ошибка сборки контекста вложенных шаблонов.<br />"
+                                    f"<br /> <br />{e}", status=424)
