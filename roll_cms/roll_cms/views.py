@@ -15,6 +15,29 @@ from roll_cms.add_function import *
 import re
 
 
+def handler404(request: HttpRequest, exception: str) -> HttpResponse:
+    """ Обработчик ошибки 404
+
+    :param request: входящий http-запрос
+    :param exception:   сообщение с причиной ошибки
+    :return response: исходящий http-ответ
+    """
+    response = render(request, template_name="404.html", context={"MSG": exception})
+    response.status_code = 404
+    return response
+
+
+def handler500(request: HttpRequest) -> HttpResponse:
+    """ Обработчик ошибки 500
+
+    :param request: входящий http-запрос
+    :return response: исходящий http-ответ
+    """
+    response = render(request, template_name="500.html", context={})
+    response.status_code = 500
+    return response
+
+
 def get_context_for_menu(q_menu: QuerySet = None, menu_id: int = None, processed_menu: set = None) -> Optional[dict]:
     """ Получение контекста для меню
 
@@ -407,6 +430,3 @@ def universal_processor(request: HttpRequest, urn_chain: str) -> HttpResponse:
         pass
     print(f"breadcrumbs: {breadcrumbs}, last = {breadcrumbs[-1]}")
     return HttpResponseRedirect('/')
-
-
-

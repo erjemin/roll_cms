@@ -47,8 +47,8 @@ urlpatterns = [
     #         views.universal_processor),
 ]
 
-# handler404 = 'web.views.handler404'
-# handler500 = 'web.views.handler500'
+handler404 = 'roll_cms.views.handler404'
+handler500 = 'roll_cms.views.handler500'
 
 if DEBUG:
     urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)
