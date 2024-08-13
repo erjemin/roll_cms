@@ -1,7 +1,65 @@
-{# RollCMS_var top_menu2 #}{# RollCMS_description Главное меню (2) #}
+{# RollCMS_var top_menu2 #}{# RollCMS_description Главное меню (2) #}<style>
+  .menu2-tab-passive {
+  background-color: transparent;
+  transition: background-color 0.9s ease-in-out;
+    color: white;
+}
+  .menu2-tab-active {
+    background-color: #C3E6FFFF;
+    transition: background-color 0ms;
+  }
+  .menu2-tab-active a {
+    color: #316094 !important;
+    border-bottom: 1px solid transparent !important;
+  }
+  .menu2-tab-active a:hover {
+    border-bottom: 1px solid #316094 !important;
+  }
+  #expand-top-menu2 {
+  overflow: hidden;
+  transition: max-height .7s ease-in-out, background-color 0.9s ease-in-out, color 0.4s ease-in-out;
+}
+  #expand-top-menu2 > div {
+  background-position: right bottom;
+  background-size: 50%;
+  background-repeat: no-repeat;  
+ {#transition: background-image 1s;#}
+ {# background-size: cover;#}
+ {# opacity: 0.5;#}
+ {# transition: opacity 1s ease-in-out;#}
+}
+
+#expand-top-menu2.to-hide {
+  max-height: 0;
+  background-color: #0C102100;
+  color: transparent;
+  transition-delay: 0ms;
+  {#transition: 0ms;#}
+  {#opacity: 0;#}
+  {#transition: opacity 0.2s ease-in-out;#}
+}
+#expand-top-menu2.to-show {
+  max-height: 100vh;
+  background-color:#C3E6FFFF;
+  font-family: 'Proxima Nova', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 3ex;
+  line-height: 120%;
+  opacity: 1;
+  transition: opacity 3.5s ease-in-out;
+}
+#expand-top-menu2.to-show > div.container > div.row > div.col-4 {
+  /* transition: transform 0.9s ease-in-out;  */
+  
+  /* Черный */
+  color: #222222;
+}
+  
+</style>
     <div class="container">
-      <ul class="navbar-nav mt-0 py-2 w-100">{% for point in top_menu2.menu %}{% if point.bPointPublish %}
-        <li class="nav-item{% if loop.index0 < 3 %} d-inline{% elif loop.index0 < 4 %} d-none d-sm-inline{% elif loop.index0 < 5 %} d-none d-md-inline{% elif loop.index0 < 6 %} d-none d-lg-inline{% elif loop.index0 < 7 %} d-none d-xl-inline{% elif loop.index0 >= 7 %} d-none{% endif %} px-3">
+      <ul class="navbar-nav my-0 pt-2 pb-0 w-100">{% for point in top_menu2.menu %}{% if point.bPointPublish %}
+        <li class="nav-item{% if loop.index0 < 3 %} d-inline{% elif loop.index0 < 4 %} d-none d-sm-inline{% elif loop.index0 < 5 %} d-none d-md-inline{% elif loop.index0 < 6 %} d-none d-lg-inline{% elif loop.index0 < 7 %} d-none d-xl-inline{% elif loop.index0 >= 7 %} d-none{% endif %} px-3 menu2-tab-passive" id="m2-t{{ loop.index  }}">
           <a class="nav-link menu-hovered" aria-current="page" href="#" title="{% if point.szPointUtlTo %}{{ point.szPointUtlTo }}{% else %}#{% endif %}" onclick="expander_top_menu2(roll_as_menu='{% if point.szPointUtlTo %}{{ point.szPointUtlTo }}{% else %}#{% endif %}', uniq={{ loop.index  }}, event);">
             {{ point.szPointTitle|safe }}
           </a>
@@ -9,37 +67,48 @@
       </ul>
     </div>
     <div class="container">
-      <div class="navbar-nav py-2 px-4 w-100 d-none" style="background: #ff666666; transition: all 1.7s;" id="expand-top-menu2">
-        <p class="nav-item">
-            Хвост
-        </p>
+      <div class="navbar-nav py-2 px-4 w-100 to-hide" id="expand-top-menu2">
+        Сюда будет загружено содержимое расширенного меню
       </div>
     </div>
 
 
 {% block Top_JS3 %}
   <script type="text/javascript">
-  let g_uniq = 0;
+  let global_uniq = 0;
   function expander_top_menu2(roll_as_menu='#', uniq=0, event) {
-    event.preventDefault(); // Предотвращаем стандартное поведение (чтобы не проматывалось вверх)
-    let _top_menu2 = $("#expand-top-menu2")
-    if (g_uniq !== uniq) {
-      // Это клик на другом пункте меню
-      _top_menu2.addClass('d-none');
-      g_uniq = uniq;
-      _top_menu2.removeClass('d-none');
-    }
-    else {
-      // Это клик на том же пункте меню
-      if (_top_menu2.hasClass('d-none')) 
-        _top_menu2.removeClass('d-none'); // Показываем расширенное меню
-      else 
-        _top_menu2.addClass('d-none'); // Скрываем расширенное меню
-    }
-    $("#expand-top-menu2 > .nav-item").html(roll_as_menu+'<br>uniq='+uniq);
-  }
+  /** Обработчик клика на табе (пункте нижнего главного меню).
+    *
+    * @param {string} roll_as_menu - URN содержимого для загрузки, в качестве расширенного (выдвижного) меню.
+    * @param {number} uniq - Уникальный номер таба который кликнули (id таба формируется как "#m2-t"+uniq).
+    * @param {event} event - Системное событие клика (чтобы его можно было перехватить).
+    * 
+    * @return {void}
+    */
+    event.preventDefault(); // Предотвращаем стандартное поведение (чтобы не проматывалось вверх по href="#")
+    let clc_tab_menu2 = $("#expand-top-menu2")
+    
+      if(clc_tab_menu2.hasClass('to-hide')) {
+        // Выдвижное меню скрыто. Покажем его.
+        if(roll_as_menu !== '#') {
+          clc_tab_menu2.load(roll_as_menu+'?'+Math.random()); // Загружаем содержимое расширенного меню
+          // clc_tab_menu2.load(roll_as_menu); // Загружаем содержимое расширенного меню
+        }
+        setTimeout(function() {
+          $("[id^='m2-t']").addClass("menu2-tab-passive").removeClass("menu2-tab-active"); // Гасим все табы
+          $("#m2-t"+uniq).removeClass('menu2-tab-passive').addClass('menu2-tab-active'); // Подсвечиваем активный таб
+          clc_tab_menu2.removeClass('to-hide').addClass('to-show'); // Показываем выдвижное меню
+        }, 50);
+        global_uniq = uniq;
+      }
+      else {
+        // Выдвижное меню показано. Скроем его.
+        clc_tab_menu2.text(''); // Очищаем содержимое расширенного меню
+        clc_tab_menu2.addClass("to-hide").removeClass("to-show"); // Скрываем выдвижное меню
+        $("[id^='m2-t']").addClass("menu2-tab-passive").removeClass("menu2-tab-active"); // Гасим все табы
+        // Если это клик на другом пункте меню, то надо не только скрыть, но и показать новое выдвижное меню
+        if(global_uniq !== uniq) expander_top_menu2(roll_as_menu, uniq, event);
+      }
+}
   </script>
 {% endblock Top_JS3 %}
-{#      <div class="navbar-nav mt-0 mb-2 w-100" style="border: yellow solid 1px; background: #ff9999cc; height: 300px; display: block; left: 0">#}
-{#        БЛОК ВЫКИДНОГО МЕНЮ#}
-{#      </div>#}

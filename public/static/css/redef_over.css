@@ -119,9 +119,12 @@
 
 /* Пункты меню верхнего (которое снизу, но может прилипнуть вверх при прокрутке и оттопыривается вниз) */
 #nav_top_menu2 .navbar-nav {
-    display: flex;
+  display: flex;
   justify-content: space-between; /* Или space-around, space-evenly в зависимости от желаемого эффекта */
   width: 100%; /* Убедитесь, что родитель занимает всю ширину */
+}
+#nav_top_menu2  .nav-item {
+  border-radius: 1ex 1ex 0 0;
 }
 #nav_top_menu2  .nav-item > a.nav-link {
 font-family: 'Proxima Nova', sans-serif;
@@ -137,7 +140,12 @@ color: white;
 flex: none;
 order: 0;
 flex-grow: 0;
+/*border-bottom: 1px solid transparent;*/
 }
+/*#nav_top_menu2  .nav-item > a.nav-link:hover {*/
+/*  border-bottom: 1px solid white;*/
+/*}*/
+
 #nav_top_menu2.to-90 {
   top: 90px;
   transition: top .9s;
