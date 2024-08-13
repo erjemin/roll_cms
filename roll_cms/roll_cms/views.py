@@ -349,7 +349,7 @@ def index(request: HttpRequest) -> HttpResponse:
         context = dict()
         gather_template_context(template_name="index.jinja2", processed_var_context=context)
         # print(f"\n=====\n Общий контекст для шаблона \"index.jinja2\": {context}")
-        context.update({"__all_rollcms_context__": context})
+        context.update({"__ALL_ROLLCMS_CONTEXT": context})
         return render(request, template_name="index.jinja2", context=context)
     except TemplateDoesNotExist as e:
         # Обработка ошибки отсутствия шаблона
@@ -418,7 +418,7 @@ def universal_processor(request: HttpRequest, url_chain: str) -> HttpResponse:
                             processed_var_context=processed_var_context,
                             processed_template_var=processed_template_var)
     try:
-        processed_var_context.update({"__all_rollcms_context__": processed_var_context})
+        processed_var_context.update({"__ALL_ROLLCMS_CONTEXT": processed_var_context})
         # TODO: Надо сделать обработку breadcrumbs (хлебных крошек), чтобы в шаблон передать корректный список словарей
         #       с именем и url каждой "крошки"
         #

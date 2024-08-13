@@ -17,7 +17,7 @@
     <!-- Вывод всего контекста -->
     <h2>Весь контекст:</h2>
     <dl>
-      {% for key, var in __all_rollcms_context__.items() %}
+      {% for key, var in __ALL_ROLLCMS_CONTEXT.items() %}
         <dt class="font-monospace">{{ key }}</dt>
         <dd class="ps-4 font-monospace">{{ var }}</dd>
       {% endfor %}

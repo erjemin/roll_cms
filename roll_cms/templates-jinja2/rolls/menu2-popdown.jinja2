@@ -3,15 +3,14 @@
   <div class="row pt-2">{% set half_length = menu2_popdown.items|length // 2 + 1 %}
     <div class="col-4">
       {% for item in menu2_popdown.items[:half_length] %}<p style="transition-delay:{{ '%.2f'|format(loop.index*0.07) }}s;">
-        {{ item.szTitle|safe }} --> {% if item.szUrlTo %}{{ item.szUrlTo }}{% elif item.kRollTo %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ROLL }}{{ item.kRollTo_id }}-{{ item.kRollTo.szRollSlug }}{% else  %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ITEM }}{{ item.id }}-{{ item.szSlug }}{% endif %}
+        <a href="{% if item.szUrlTo %}{{ item.szUrlTo }}{% elif item.kRollTo %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ROLL }}{{ item.kRollTo_id }}-{{ item.kRollTo.szRollSlug }}{% else  %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ITEM }}{{ item.id }}-{{ item.szSlug }}{% endif %}">{{ item.szTitle|safe }}</a>
       </p>{% endfor %}
     </div>
     <div class="col-4">
       {% for item in menu2_popdown.items[half_length:] %}<p style="transition-delay:{{ '%.2f'|format(0.6+loop.index*0.07) }}s;">
-        {{ item.szTitle|safe }} --> {% if item.szUrlTo %}{{ item.szUrlTo }}{% elif item.kRollTo %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ROLL }}{{ item.kRollTo_id }}-{{ item.kRollTo.szRollSlug }}{% else  %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ITEM }}{{ item.id }}-{{ item.szSlug }}{% endif %}
+        <a href="{% if item.szUrlTo %}{{ item.szUrlTo }}{% elif item.kRollTo %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ROLL }}{{ item.kRollTo_id }}-{{ item.kRollTo.szRollSlug }}{% else  %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ITEM }}{{ item.id }}-{{ item.szSlug }}{% endif %}">{{ item.szTitle|safe }}</a> 
       </p>{% endfor %}
     </div>
-    {{ __all_rollcms_context__ }}
   </div>
 
 </div>
