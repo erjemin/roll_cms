@@ -161,3 +161,63 @@ flex-grow: 0;
   transition: background-color 1.9s;
 }
 
+ .menu2-tab-passive {
+  background-color: transparent;
+  transition: background-color 0.9s ease-in-out;
+    color: white;
+}
+  .menu2-tab-active {
+    background-color: #C3E6FFFF;
+    transition: background-color 0ms;
+  }
+  .menu2-tab-active a {
+    color: #316094 !important;
+    border-bottom: 1px solid transparent !important;
+  }
+  .menu2-tab-active a:hover {
+    border-bottom: 1px solid #316094 !important;
+  }
+  /* Выпадающее меню 2 */
+  #expand-top-menu2 {
+  font-family: 'Proxima Nova', sans-serif;
+  background-color:transparent;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 3ex;
+  line-height: 120%;
+  overflow: hidden;
+  transition: max-height .7s ease-in-out, background-color 0.9s ease-in-out, color 0.4s ease-in-out;
+}
+#expand-top-menu2 > div {
+  background-position: right bottom;
+  background-size: 50%;
+  background-repeat: no-repeat;
+}
+#expand-top-menu2.to-hide {
+  max-height: 0;
+  background-color: #0C102100;
+  color: transparent;
+  transition-delay: 0ms;
+}
+#expand-top-menu2.to-show {
+  background-color:#C3E6FFFF;
+  max-height: 100vh;
+  opacity: 1;
+  transition: opacity 3.5s ease-in-out;
+}
+#expand-top-menu2.to-show > div.container > div.row > div > p > a {
+  color: #222;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  background-color: transparent;
+  display: inline-block;
+  border-left: transparent 5px solid;
+}
+#expand-top-menu2.to-show > div.container > div.row > div > p > a:hover {
+  color: whitesmoke; /* Цвет текста при наведении */
+  border-left: white 5px solid;
+  background-color: navy;
+  transition: color .3s ease-in-out, background-color .8s ease-in-out, border-left .8s ease-in-out;
+}
+

@@ -1,76 +1,17 @@
-{# RollCMS_var top_menu2 #}{# RollCMS_description Главное меню (2) #}<style>
-  .menu2-tab-passive {
-  background-color: transparent;
-  transition: background-color 0.9s ease-in-out;
-    color: white;
-}
-  .menu2-tab-active {
-    background-color: #C3E6FFFF;
-    transition: background-color 0ms;
-  }
-  .menu2-tab-active a {
-    color: #316094 !important;
-    border-bottom: 1px solid transparent !important;
-  }
-  .menu2-tab-active a:hover {
-    border-bottom: 1px solid #316094 !important;
-  }
-  #expand-top-menu2 {
-  overflow: hidden;
-  transition: max-height .7s ease-in-out, background-color 0.9s ease-in-out, color 0.4s ease-in-out;
-}
-  #expand-top-menu2 > div {
-  background-position: right bottom;
-  background-size: 50%;
-  background-repeat: no-repeat;  
- {#transition: background-image 1s;#}
- {# background-size: cover;#}
- {# opacity: 0.5;#}
- {# transition: opacity 1s ease-in-out;#}
-}
-
-#expand-top-menu2.to-hide {
-  max-height: 0;
-  background-color: #0C102100;
-  color: transparent;
-  transition-delay: 0ms;
-  {#transition: 0ms;#}
-  {#opacity: 0;#}
-  {#transition: opacity 0.2s ease-in-out;#}
-}
-#expand-top-menu2.to-show {
-  max-height: 100vh;
-  background-color:#C3E6FFFF;
-  font-family: 'Proxima Nova', sans-serif;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 3ex;
-  line-height: 120%;
-  opacity: 1;
-  transition: opacity 3.5s ease-in-out;
-}
-#expand-top-menu2.to-show > div.container > div.row > div.col-4 {
-  /* transition: transform 0.9s ease-in-out;  */
-  
-  /* Черный */
-  color: #222222;
-}
-  
-</style>
-    <div class="container">
-      <ul class="navbar-nav my-0 pt-2 pb-0 w-100">{% for point in top_menu2.menu %}{% if point.bPointPublish %}
-        <li class="nav-item{% if loop.index0 < 3 %} d-inline{% elif loop.index0 < 4 %} d-none d-sm-inline{% elif loop.index0 < 5 %} d-none d-md-inline{% elif loop.index0 < 6 %} d-none d-lg-inline{% elif loop.index0 < 7 %} d-none d-xl-inline{% elif loop.index0 >= 7 %} d-none{% endif %} px-3 menu2-tab-passive" id="m2-t{{ loop.index  }}">
-          <a class="nav-link menu-hovered" aria-current="page" href="#" title="{% if point.szPointUtlTo %}{{ point.szPointUtlTo }}{% else %}#{% endif %}" onclick="expander_top_menu2(roll_as_menu='{% if point.szPointUtlTo %}{{ point.szPointUtlTo }}{% else %}#{% endif %}', uniq={{ loop.index  }}, event);">
-            {{ point.szPointTitle|safe }}
-          </a>
-        </li>{% endif %}{% endfor %}
-      </ul>
+{# RollCMS_var top_menu2 #}{# RollCMS_description Главное меню (2) #}<div class="container">
+    <ul class="navbar-nav my-0 pt-2 pb-0 w-100">{% for point in top_menu2.menu %}{% if point.bPointPublish %}
+      <li class="nav-item{% if loop.index0 < 3 %} d-inline{% elif loop.index0 < 4 %} d-none d-sm-inline{% elif loop.index0 < 5 %} d-none d-md-inline{% elif loop.index0 < 6 %} d-none d-lg-inline{% elif loop.index0 < 7 %} d-none d-xl-inline{% elif loop.index0 >= 7 %} d-none{% endif %} px-3 menu2-tab-passive" id="m2-t{{ loop.index  }}">
+        <a class="nav-link menu-hovered" aria-current="page" href="#" title="{% if point.szPointUtlTo %}{{ point.szPointUtlTo }}{% else %}#{% endif %}" onclick="expander_top_menu2(roll_as_menu='{% if point.szPointUtlTo %}{{ point.szPointUtlTo }}{% else %}#{% endif %}', uniq={{ loop.index  }}, event);">
+          {{ point.szPointTitle|safe }}
+        </a>
+      </li>{% endif %}{% endfor %}
+    </ul>
+  </div>
+  <div class="container">
+    <div class="navbar-nav py-2 px-1 w-100 to-hide" id="expand-top-menu2">
+      Сюда будет загружено содержимое расширенного меню
     </div>
-    <div class="container">
-      <div class="navbar-nav py-2 px-4 w-100 to-hide" id="expand-top-menu2">
-        Сюда будет загружено содержимое расширенного меню
-      </div>
-    </div>
+  </div>
 
 
 {% block Top_JS3 %}
