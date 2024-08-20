@@ -29,16 +29,17 @@
   <link rel="stylesheet" href="{{ static('css/redef_over.css') }}" />{% block META_OG %}{% endblock %}
   <meta name="generator" content="rollCMS 0.1β" />{# <meta name="generator" content="Microsoft FrontPage 1.0" /> #}
 </head>
-<body>{% block BODY %}
+<body class="day">{% block BODY %}
   {% block Top_CSS1 %}{% endblock Top_CSS1 %}{% block Top_CSS2 %}{% endblock Top_CSS2 %}{% block Top_CSS3 %}{% endblock Top_CSS3 %}{% block CONTENT %}{% endblock CONTENT %}
   
   <script type="text/javascript" src="{{ static('js/jquery-3.7.1.min.js') }}"></script>
   <script type="text/javascript" src="{{ static('bootstrap-5.3.3-dist/js/bootstrap.min.js') }}"></script>
-  
-  {# ВЕРХНЕЕ ВЕНЮ #}<div id="menu-top1" class="container">
-    <nav class="col-12 navbar navbar-expand fixed-top py-0 my-0 d-block" id="nav_top_menu1">{% include "menus/main-menu-1.jinja2" %}</nav>
-    <nav class="col-12 navbar navbar-expand fixed-top my-0 py-0 to-90 d-flex flex-column" id="nav_top_menu2">{% include "menus/main-menu-2.jinja2" %}</nav>
-  </div>
+  {# ВЕРХНИЕ МЕНЮ (2 штуки) #}<div id="menu-top1" class="container px-0 mx-0">
+    <nav class="col-12 navbar navbar-expand fixed-top p-0 m-0 d-block" id="nav_top_menu1">{% include "menus/main-menu-1.jinja2" %}</nav>
+    <nav class="col-12 navbar navbar-expand fixed-top m-0 p-0 to-90 d-flex flex-column" id="nav_top_menu2">{% include "menus/main-menu-2.jinja2" %}</nav>
+  </div>{# /ВЕРХНИЕ МЕНЮ (2 штуки) #}
+  {# ПОДВАЛ #}{% include "menus/footer.jinja2" %}
+  {# /ПОДВАЛ #}
   <script type="text/javascript">
   $(window).scroll(function() {
     var scroll = $(window).scrollTop();
@@ -52,7 +53,7 @@
       $("nav#nav_top_menu2").addClass("to-90").removeClass('to-00');
     }
   });
-  </script>{# /ВЕРХНЕЕ ВЕНЮ #}
+  </script>
   {# СПРОСИТЬ ПРО КУКИ #}{% if not COOKIES %}{% include "blocks/accept-cookies.jinja2" %}{% endif %}{# /СПРОСИТЬ ПРО КУКИ #}
   {% block Top_JS1 %}{% endblock Top_JS1 %}{% block Top_JS2 %}{% endblock Top_JS2 %}{% block Top_JS3 %}{% endblock Top_JS3 %}{% endblock BODY %}</body>
 </html>

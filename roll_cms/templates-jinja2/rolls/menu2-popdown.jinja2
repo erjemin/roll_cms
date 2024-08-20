@@ -2,12 +2,12 @@
   <div class="row pt-2">{% set half_length = menu2_popdown.items|length // 2 + 1 %}
     <div class="col-4 mx-0">
       {% for item in menu2_popdown.items[:half_length] %}<p style="transition-delay:{{ '%.2f'|format(loop.index*0.07) }}s;">
-        <a href="{% if item.szUrlTo %}{{ item.szUrlTo }}{% elif item.kRollTo %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ROLL }}{{ item.kRollTo_id }}-{{ item.kRollTo.szRollSlug }}{% else  %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ITEM }}{{ item.id }}-{{ item.szSlug }}{% endif %}" class="px-2">{{ item.szTitle|safe }}</a>
+        <a href="{% if item.szUrlTo %}{# Это внешняя ссылка #}{{ item.szUrlTo }}{% elif item.kRollTo %}{# Это ссылка на ролл #}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ROLL }}{{ item.kRollTo_id }}-{{ item.kRollTo.szRollSlug }}{% else  %}{# Это ссылка на элемент' #}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ITEM }}{{ item.id }}-{{ item.szSlug }}{% endif %}" class="px-2">{{ item.szTitle|safe }}</a>
       </p>{% endfor %}
     </div>
     <div class="col-4 mx-0">
       {% for item in menu2_popdown.items[half_length:] %}<p style="transition-delay:{{ '%.2f'|format(0.6+loop.index*0.07) }}s;">
-        <a href="{% if item.szUrlTo %}{{ item.szUrlTo }}{% elif item.kRollTo %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ROLL }}{{ item.kRollTo_id }}-{{ item.kRollTo.szRollSlug }}{% else  %}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ITEM }}{{ item.id }}-{{ item.szSlug }}{% endif %}" class="px-2">{{ item.szTitle|safe }}</a>
+        <a href="{% if item.szUrlTo %}{# Это внешняя ссылка #}{{ item.szUrlTo }}{% elif item.kRollTo %}{# Это ссылка на ролл #}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ROLL }}{{ item.kRollTo_id }}-{{ item.kRollTo.szRollSlug }}{% else  %}{# Это ссылка на элемент' #}{{ __URL_CHAIN }}/{{ __URL_PREFIX_ITEM }}{{ item.id }}-{{ item.szSlug }}{% endif %}" class="px-2">{{ item.szTitle|safe }}</a>
       </p>{% endfor %}
     </div>
   </div>
