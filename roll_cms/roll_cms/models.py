@@ -461,7 +461,7 @@ class TbItem(models.Model):
     )
 
     def __unicode__(self):
-        return f"{self.id:03}: {self.szSlug}"
+        return f"{self.id:03}: {self.szName}"
 
     def __str__(self):
         return self.__unicode__()

@@ -41,8 +41,16 @@ urlpatterns = [
     # Главная страница
     re_path(r'^$', views.index),
     # Универсальный обработчик URN
-    re_path(rf'^(?P<url_chain>({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM}|{URL_PREFIX_TAGG})\d+-[\s\S]+)$',
-            views.universal_processor),
+    re_path(rf'^(?P<url_chain>(({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM})(\d+)-\S+|{URL_PREFIX_TAGG}-(\S+)))$',
+        views.universal_processor),
+    # re_path(rf'^(?P<url_chain>({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM})\d+-[\s\S]+)$',
+    #         views.universal_processor),
+    # re_path(rf'^(?P<url_chain>(({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM})(\d+)-\S+|{URL_PREFIX_TAGG}-(\S+))$,
+    #         views.universal_processor),
+
+    # ТЕГИ
+    # re_path(rf'^(?P<url_chain>({URL_PREFIX_TAGG})-[\s\S]+)$',
+    #         views.universal_processor),
 ]
 
 handler404 = 'roll_cms.views.handler404'

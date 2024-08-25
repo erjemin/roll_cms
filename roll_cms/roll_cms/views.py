@@ -159,7 +159,7 @@ def get_context_for_roll(q_roll: QuerySet = None, roll_id: int = None, processed
         try:
             key, value = pair.split("=")
             value = eval(value)
-        except:
+        except:     # except (ValueError, KeyError, SyntaxError, AttributeError):
             # Не удалось разобрать пару ключ=значение или ошибка eval(value)
             continue
         filter_args_value.update({key: value})
@@ -243,10 +243,12 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
     # Контекст связанный с URL не учитывается (если он есть, то он должен был быть получен функцией снаружи).
     template_folder_name = q1_template.szFileName.split("/")[0]
     if template_folder_name in [FOLD_CASH_TEMPLATES, FOLD_BLOCK_TEMPLATES]:
+        #
         # Это шаблон блока или кэша. У них нет контекста.
         # print(f"Это шаблон блока или кэша: \"{template_name}\". Такие шаблоны не имеют контекста.")
         processed_template_var.update({template_name: None})
     elif template_folder_name == FOLD_MENU_TEMPLATES:
+        #
         # Это шаблон для создания меню. Получаем контекст меню из базы
         # print(f"Это шаблон для создания меню: \"{template_name}\"")
         processed_template_var.update({template_name: q1_template.szVar})
@@ -260,7 +262,7 @@ def gather_template_context(template_name: str, processed_var_context: dict = No
             processed_var_context.update({q1_template.szVar: contex})
             # print(f"Контекст для меню \"{q1_template.szVar}\": {contex}")
     elif template_folder_name == FOLD_ROLL_TEMPLATES:
-        # Это шаблон ролла (который . Получаем контекст ролла из базы
+        # Это шаблон ролла. Получаем контекст ролла из базы
         # Это ролл, который встроен в шаблон
         # print(f"Это шаблон для создания ролла: \"{template_name}\"")
         processed_template_var.update({template_name: q1_template.szVar})
@@ -369,11 +371,17 @@ def universal_processor(request: HttpRequest, url_chain: str) -> HttpResponse:
     processed_var_context = dict()
     processed_template_var = dict()
     template_name = str()
+    var = str()
     breadcrumbs = url_chain.split("/")
     last_of_breadcrumbs = breadcrumbs[-1]
-    match = re.search(pattern=rf"({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM}|{URL_PREFIX_TAGG})(\d+)-\S+",
+    # match = re.search(pattern=rf"({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM}|{URL_PREFIX_TAGG})(\d+)-\S+",
+    #                   string=last_of_breadcrumbs)
+    match = re.search(pattern=rf"({URL_PREFIX_ROLL}|{URL_PREFIX_ITEM})(\d+)-\S+|{URL_PREFIX_TAGG}-(\S+)",
                       string=last_of_breadcrumbs)
     if match.group(1) == URL_PREFIX_ROLL:
+        #
+        # Это ролл вызванный по URN
+        #
         # print(f"Это URN для отображения ролла с ID = {match.group(2)}")
         roll_id = int(match.group(2))
         try:
@@ -399,7 +407,7 @@ def universal_processor(request: HttpRequest, url_chain: str) -> HttpResponse:
         processed_template_var.update({template_name: var})
         if var is None or not var.strip():
             # У этого ролла нет переменой для передачи контекста, а значит и контекст не нужен!
-            print(f"Для ролла \"{roll_id}\" контекст не нужен.")
+            # print(f"Для ролла \"{roll_id}\" контекст не нужен.")
             pass
         else:
             breadcrumbs[-1] = f"{URL_PREFIX_ROLL}{roll_id}-{q_roll.szRollSlug}"
@@ -407,10 +415,68 @@ def universal_processor(request: HttpRequest, url_chain: str) -> HttpResponse:
             processed_var_context.update({var: context})
 
     elif match.group(1) == URL_PREFIX_ITEM:
-        # Это элемент
-        return HttpResponse(content=f"RollCSM пока не обрабатывает элементы", status=424)
+        #
+        # Это элемент вызванный по URN
+        #
+        # print(f"Это URN для отображения элемента с ID = {match.group(2)}")
+        item_id = int(match.group(2))
+        try:
+            q_item = TbItem.objects.get(pk=item_id)
+        except TbItem.DoesNotExist as e:
+            # Элемент не найден
+            return HttpResponse(content=f"RollCSM не нашла элемент c id={item_id}.<br />"
+                                        f"Создайте его через панель администрирования.<br /> <br />{e}", status=424)
+        if (q_item.bPublish is False or (q_item.tdStart and q_item.tdStart > now()) or
+                (q_item.tdStop and q_item.tdStop < now())):
+            # Элемент не опубликован
+            return HttpResponse(content=f"RollCSM не может отобразить элемент c id={item_id}, т.к. он не"
+                                        f"опубликован или срок его публикации истек или еще не наступил.",
+                                status=424)
+        # print(f"Элемент \"{q_item.szName}\" опубликован.")
+        try:
+            template_name = q_item.kTemplate.szFileName
+            var = q_item.kRollTemplate.szVar
+        except AttributeError:
+            if template_name is None or not template_name.strip():
+                # То что у элемента-контента нет индивидуального шаблона -- нормальная ситуация. Шаблоны
+                # у элементов-контента обычно задается в родительском ролле. Но если элемент включен в несколько
+                # роллов, то может произойти коллизия шаблонов, и выберем один (первый по сортировкам
+                # по умолчанию заданным в моделях).
+                rolls_that_include_the_item = q_item.kRoll.all()
+                # Проверить, пустой ли QuerySet
+                if not rolls_that_include_the_item.exists():
+                    return HttpResponse(content=f"RollCSM не нашла для элемента c id={item_id} ни индивидуального"
+                                                f" шаблона, ни контент-шаблона наследуемого из ролла.<br />"
+                                                f"Привяжите элемент к роллу с контент-шаблону или задайте"
+                                                f" через панель администрирования или .",
+                                        status=424)
+                for roll in rolls_that_include_the_item:
+                    if roll.kDefaultContentTemplate and roll.kDefaultContentTemplate.szFileName:
+                        template_name = roll.kDefaultContentTemplate.szFileName
+                        var = roll.kDefaultContentTemplate.szVar
+                        break
+                if template_name is str():      # Если имя шаблона пустая строка, то есть шаблон не найден
+                    # Не удалось найти шаблон для элемента
+                    return HttpResponse(content=f"RollCSM не нашла для элемента c id={item_id} ни индивидуального"
+                                                f" шаблона, ни контент-шаблона наследуемого из ролла.<br />"
+                                                f"Привяжите элемент к роллу с контент-шаблону или задайте"
+                                                f" через панель администрирования или .",
+                                        status=424)
+        print(f"Шаблон для элемента: \"{template_name}\"")
+        processed_template_var.update({template_name: var})
+        if var:
+            # У этого элемента в шаблоне есть переменная для передачи контекста, а значит нужно получить контекст.
+            breadcrumbs[-1] = f"{URL_PREFIX_ITEM}{item_id}-{q_item.szSlug}"
+            # Возможно стоит вызвать функцию для получения контекста для элемента
+            # context = get_context_for_item(q_item=q_item)
+            # Но мы его уже получили. Т.к. пока функция get_context_for_item() не реализована, то
+            # просто добавим элемент в контекст.
+            processed_var_context.update({var: q_item})
+
     elif match.group(1) == URL_PREFIX_TAGG:
+        #
         # Это тег
+        #
         return HttpResponse(content=f"RollCSM пока не обрабатывает теги", status=424)
 
     # теперь нужно собрать остальной контекст из вложенных в template_name шаблонов.
@@ -418,6 +484,8 @@ def universal_processor(request: HttpRequest, url_chain: str) -> HttpResponse:
                             processed_var_context=processed_var_context,
                             processed_template_var=processed_template_var)
     try:
+        # Для отладки. Чтобы видеть весь контекст в шаблоне --+
+        #                                                     |
         processed_var_context.update({"__ALL_ROLLCMS_CONTEXT": processed_var_context})
         # TODO: Надо сделать обработку breadcrumbs (хлебных крошек), чтобы в шаблон передать корректный список словарей
         #       с именем и url каждой "крошки"
