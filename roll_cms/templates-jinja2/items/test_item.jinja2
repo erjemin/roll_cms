@@ -26,6 +26,13 @@
         <dd class="ps-4 font-monospace">{{ test_i.id }}</dd>
         <dt class="font-monospace">[var].kRoll / [var].kRoll_id &mdash; Ролл (лента) в которую вкл. элемент</dt>
         <dd class="ps-4 font-monospace">{{ test_i.kRoll }} / {{ test_i.kRoll_id }}</dd>
+        
+        <dt class="font-monospace">[var].kRoll &mdash; Итератор роллов (лент) в которые включен данный элемент</dt>
+        <dd class="ps-4 font-monospace">{% for roll in test_i.kRoll.all() %}
+          <li>{{ roll.szRollName }} <small>(id ролла: {{ roll.id }})</small></li>
+            {% endfor %}
+        </dd>
+        
         <dt class="font-monospace">[var].bPublish &mdash; Вкл./Выкл. элемент (опубликован)</dt>
         <dd class="ps-4 font-monospace">{{ test_i.bPublish }}</dd>
         <dt class="font-monospace">[var].tdStart &mdash; Дата начала публикации элемента</dt>
