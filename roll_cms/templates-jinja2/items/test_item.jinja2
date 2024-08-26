@@ -1,0 +1,83 @@
+{# RollCMS_var test_i #}
+{# RollCMS_description -ТЕСТ-ЭЛЕМЕНТА- (тест для элемента контента) #}
+{% extends 'base.jinja2' %}
+
+{% block Title %} - {{ test_i.szTitle }}{% endblock Title %}
+
+{% block CONTENT %}
+  <div class="row">
+    <div class="col-12">
+      <h1>Контент-элемент (item). Тест.</h1>
+      <h2>Явно переданный контекст</h2>
+      <h3>По умолчанию:</h3>
+      <dl>
+        <dt class="font-monospace">__URL_CHAIN</dt>
+        <dd class="ps-4 font-monospace">{{ __URL_CHAIN }}</dd>
+        <dt class="font-monospace">__URL_PREFIX_ROLL</dt>
+        <dd class="ps-4 font-monospace">{{ __URL_PREFIX_ROLL }}</dd>
+        <dt class="font-monospace">__URL_PREFIX_ITEM</dt>
+        <dd class="ps-4 font-monospace">{{ __URL_PREFIX_ITEM }}</dd>
+        <dt class="font-monospace">__URL_PREFIX_TAGG</dt>
+        <dd class="ps-4 font-monospace">{{ __URL_PREFIX_TAGG }}</dd>
+      </dl>
+      <h3>В переменной [var]:</h3>
+      <dl>
+        <dt class="font-monospace">[var].i &mdash; primary key (pk)</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.id }}</dd>
+        <dt class="font-monospace">[var].kRoll / [var].kRoll_id &mdash; Ролл (лента) в которую вкл. элемент</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.kRoll }} / {{ test_i.kRoll_id }}</dd>
+        <dt class="font-monospace">[var].bPublish &mdash; Вкл./Выкл. элемент (опубликован)</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.bPublish }}</dd>
+        <dt class="font-monospace">[var].tdStart &mdash; Дата начала публикации элемента</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.tdStart }}</dd>
+        <dt class="font-monospace">[var].szSlug &mdash; Дата снятия элемента</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.tdStop }}</dd>
+        <dt class="font-monospace">[var].iSort &mdash; Сортировка элемента в ролле</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.iSort }}</dd>
+        <dt class="font-monospace">[var].iCount &mdash; Счётчик просмотров элемента</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.iCount }}</dd>
+        <dt class="font-monospace">[var].szName &mdash; Название (техническое)</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.szName }}</dd>
+        <dt class="font-monospace">[var].szTitle &mdash; Заголовок контекстного элемента</dt>
+        <dd class="ps-4 font-monospace">
+          <pre>{{ test_i.szTitle }}</pre>
+        </dd>
+        <dt class="font-monospace">[var].kImg / [var].kImg.url / [var].kImg_id &mdash; Картинка-превью элемента</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.kImg }} / {{ test_i.kImg.url }} / {{ test_i.kImg_id }} </dd>
+        <dt class="font-monospace">[var].szNote &mdash; Анонс элемента</dt>
+        <dd class="ps-4 font-monospace">
+          <pre>{{ test_i.szNote }}</pre>
+        </dd>
+        <dt class="font-monospace">[var].szText &mdash; Текст элемента</dt>
+        <dd class="ps-4 font-monospace">
+          <pre>{{ test_i.szText }}</pre>
+        </dd>
+        <dt class="font-monospace">[var].szSeoKeywords &mdash; Keywords (SEO)</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.szSeoKeywords }}</dd>
+        <dt class="font-monospace">[var].szSeoDescription &mdash; Description (SEO)</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.szSeoDescription }}</dd>
+        <dt class="font-monospace">[var].szSlug &mdash; URL-слаг элемента</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.szSlug }}</dd>
+        <dt class="font-monospace">[var].jOldSlugs &mdash; Старые URL-слаги элемента</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.jOldSlugs }}</dd>
+        <dt class="font-monospace">[var].szUrlTo &mdash; URL на внешний ресурс (если редирект)</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.szUrlTo }}</dd>
+        <dt class="font-monospace">[var].kRollTo / [var].kRollTo_id &mdash; Вложенный ролл</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.kRollTo }} / {{ test_i.kRollTo_id }}</dd>
+        <dt class="font-monospace">[var].jAtt &mdash; Аттрибуты и таги (вложения) элемента</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.jAtt }}</dd>
+        <dt class="font-monospace">[var].kTemplate / [var].kTemplate_id &mdash; Шаблон (спец-шаблон) элемента</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.kTemplate }} / {{ test_i.kTemplate_id }}</dd>
+        <dt class="font-monospace">[var].dtCreate &mdash; Дата создания элемента</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.dtCreate }}</dd>
+        <dt class="font-monospace">[var].dtTimeStamp &mdash; Штамп времени (дата изменения)</dt>
+        <dd class="ps-4 font-monospace">{{ test_i.dtTimeStamp }}</dd>
+      </dl>
+      <h2>Отладка <small>(весь контекст)</small>:</h2>
+      <dl>{% for key, var in __ALL_ROLLCMS_CONTEXT.items() %}
+        <dt class="font-monospace">{{ key }}</dt>
+        <dd class="ps-4 font-monospace">{{ var }}</dd>{% endfor %}
+      </dl>
+    </div>
+  </div>
+{% endblock CONTENT %}
