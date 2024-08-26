@@ -30,11 +30,11 @@
   <meta name="generator" content="rollCMS 0.1β" />{# <meta name="generator" content="Microsoft FrontPage 1.0" /> #}
 </head>
 <body class="day">{% block BODY %}
-  {% block Top_CSS1 %}{% endblock Top_CSS1 %}{% block Top_CSS2 %}{% endblock Top_CSS2 %}{% block Top_CSS3 %}{% endblock Top_CSS3 %}{% block CONTENT %}{% endblock CONTENT %}
-  
+  {% block Top_CSS1 %}{% endblock Top_CSS1 %}{% block Top_CSS2 %}{% endblock Top_CSS2 %}{% block Top_CSS3 %}{% endblock Top_CSS3 %}
+  <div class="container px-0" id="content" style="background: var(--bg-b-light);">{% block CONTENT %}{% endblock CONTENT %}</div>  
   <script type="text/javascript" src="{{ static('js/jquery-3.7.1.min.js') }}"></script>
   <script type="text/javascript" src="{{ static('bootstrap-5.3.3-dist/js/bootstrap.min.js') }}"></script>
-  {# ВЕРХНИЕ МЕНЮ (2 штуки) #}<div id="menu-top1" class="container px-0 mx-0">
+  {# ВЕРХНИЕ МЕНЮ (2 штуки) #}<div id="menu-top1" class="container">
     <nav class="col-12 navbar navbar-expand fixed-top p-0 m-0 d-block" id="nav_top_menu1">{% include "menus/main-menu-1.jinja2" %}</nav>
     <nav class="col-12 navbar navbar-expand fixed-top m-0 p-0 to-90 d-flex flex-column" id="nav_top_menu2">{% include "menus/main-menu-2.jinja2" %}</nav>
   </div>{# /ВЕРХНИЕ МЕНЮ (2 штуки) #}

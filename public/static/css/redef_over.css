@@ -8,12 +8,18 @@
     font-style: normal;
     font-display: swap;
 }
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 
+body.day {
+  --bg-b-light: #E5F3FE;
+  --bg-b-dark: #316094;
+  --text-light: #FFFFFF;
+  --text-dark: #222222;
 
-.bg-body-tertiary {
-    background-color: #ffffff00 !important;
 }
-
+/*
+ * СЛАЙДЕР НА ГЛАВНОЙ
+ */
 #index-slider .carousel-caption {
   /*position: absolute;*/
   /*top: 50%;*/
@@ -25,64 +31,60 @@
   bottom: 3em;
   left: 10%;
 }
-/* Главная. Баннер. Надпись. */
+/*
+ * СЛАЙДЕР НА ГЛАВНОЙ
+ */
 #index-slider h2 {
-  font-family: 'Proxima Nova', sans-serif;
+  font-family: 'Proxima Nova', sans-serif; /* Главная. Баннер. Надпись. */
   font-style: normal;
   font-weight: 600;
   font-size: 50px;
   line-height: 110%;
-  /* identical to box height, or 55px */
-  /* text-align: left;*/
-  /* Inside auto layout */
   flex: none;
   order: 0;
   flex-grow: 0;
 }
-/* Главная. Баннер. Точечки. */
-#index-slider > .carousel-indicators > button {
-  background-color: #ffffff80;
-  border: 1px solid #ffffffff;
+#index-slider > .carousel-indicators > button { /* Главная. Баннер. Точечки (Индикаторы) */
+  background-color: var(--text-light);
+  border: 1px solid var(--text-light);
   width: 9px;
   height: 9px;
   border-radius: 50%;
   margin: 2px 10px;
-  /*transition: .1s;*/
 }
-#index-slider > .carousel-indicators > button.active {
-  background-color: #ffffffff;
+#index-slider > .carousel-indicators > button.active { /* Главная. Баннер. Точечки (Индикаторы) активный */
+  background-color: var(--text-light);
   border: none;
   width: 13px;
   height: 13px;
   margin: 0 8px;
-  /*transition: .8s;*/
 }
-
-/* Пункты меню верхнего (самого верхнего) */
-#nav_top_menu1 .navbar-brand {
+/*
+ * ВЕРХНЕЕ МЕНЮ (САМОЕ ВЕРХНЕЕ)
+ */
+#nav_top_menu1 .navbar-brand { /* Логотип */
   background-color: transparent;
   background-image: url('/static/img/logo_bg_long.svg');
   background-position: right;
   height: 82px;
   padding-right: 100px;
 }
-#nav_top_menu1.to-show {
+#nav_top_menu1.to-show { /* Отображается и прилипает к верху */
   top: 0;
   transition: all .7s ease-in;
 }
-#nav_top_menu1.to-hide {
+#nav_top_menu1.to-hide { /* Спрятано */
   top: -77px;
-  background-color: white;
+  background-color: var(--text-light);
   transition: all 1.1s ease-out;
-  /*border-top: black 15px solid;*/
 }
-#nav_top_menu1 .nav-item > a.nav-link {
+#nav_top_menu1 .nav-item > a.nav-link { /* Пункты меню */
   font-family: 'Proxima Nova', sans-serif;
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
   line-height: 120%;
-  color: #FFFFFF;
+  color: var(--text-light);
   flex: none;
   /*order: 0;*/
   /*flex-grow: 0;*/
@@ -92,7 +94,7 @@
   padding: 1ex 1em;
   transition: all .2s ease;
 }
-#nav_top_menu1 .nav-item > a.nav-link.menu-hovered:before{
+#nav_top_menu1 .nav-item > a.nav-link.menu-hovered:before{ /* Эффект при наведении */
   content: "";
   position: absolute;
   top: 0;
@@ -105,58 +107,50 @@
   transition: all .3s ease;
   border-top: transparent 2px solid;
 }
-
-#nav_top_menu1 .nav-item > a.nav-link.menu-hovered:hover:before {
+#nav_top_menu1 .nav-item > a.nav-link.menu-hovered:hover:before { /* Эффект при наведении */
   width: 100%;
   background: #455AD766;
   background: linear-gradient(180deg, #455AD766 15%, #94BBE911 100%);
-  /*background: #9999ff66;*/
-  border-top: white 2px solid;
+  border-top: var(--text-light) 2px solid;
 }
-#nav_top_menu1 .nav-item > a.nav-link.menu-hovered:active {
+#nav_top_menu1 .nav-item > a.nav-link.menu-hovered:active { /* Эффект при нажатии */
   transform: scale(.96)
 }
-
-/* Пункты меню верхнего (которое снизу, но может прилипнуть вверх при прокрутке и оттопыривается вниз) */
-#nav_top_menu2 .navbar-nav {
+/*
+ * ВЕРХНЕЕ МЕНЮ (КОТОРОЕ ПОНИЖЕ)
+ */
+#nav_top_menu2 .navbar-nav { /* Пункты меню верхнего (которое снизу, но может прилипнуть вверх при прокрутке и оттопыривается вниз) */
   display: flex;
   justify-content: space-between; /* Или space-around, space-evenly в зависимости от желаемого эффекта */
   width: 100%; /* Убедитесь, что родитель занимает всю ширину */
 }
-#nav_top_menu2  .nav-item {
+#nav_top_menu2  .nav-item { /* Пункты меню */
   border-radius: 1ex 1ex 0 0;
 }
-#nav_top_menu2  .nav-item > a.nav-link {
+#nav_top_menu2  .nav-item > a.nav-link { /* Ссылки */
 font-family: 'Proxima Nova', sans-serif;
 font-style: normal;
 font-weight: 400;
 font-size: 14px;
 line-height: 120%;
-/* identical to box height, or 17px */
 display: flex;
 align-items: center;
-color: white;
-/* Inside auto layout */
+color: var(--text-light);
 flex: none;
 order: 0;
 flex-grow: 0;
-/*border-bottom: 1px solid transparent;*/
 }
-/*#nav_top_menu2  .nav-item > a.nav-link:hover {*/
-/*  border-bottom: 1px solid white;*/
-/*}*/
-
-#nav_top_menu2.to-90 {
+#nav_top_menu2.to-90 { /* Оттопыривается вниз, т.к. более верхнее меню показывается */
   top: 90px;
   transition: top .9s;
   transform-box: fill-box;
   background: transparent;
 }
-#nav_top_menu2.to-00 {
+#nav_top_menu2.to-00 { /* Прилипает к верху, т.к. более верхнее меню спрятано */
   top: 5px;
   transition: top .9s;
 }
-#nav_top_menu2.to-00 .container ul {
+#nav_top_menu2.to-00 .container ul { /* Пункты меню */
   background: #0a001f99;
   transition: background-color 1.9s;
 }
@@ -164,7 +158,7 @@ flex-grow: 0;
  .menu2-tab-passive {
   background-color: transparent;
   transition: background-color 0.9s ease-in-out;
-    color: white;
+    color: var(--text-light);
 }
   .menu2-tab-active {
     background-color: #C3E6FFFF;
@@ -177,7 +171,9 @@ flex-grow: 0;
   .menu2-tab-active a:hover {
     border-bottom: 1px solid #316094 !important;
   }
-  /* Выпадающее меню 2 */
+  /*
+   * ВЫПАДАЮЩЕЕ МЕНЮ 2 (ТО ЧТО ВЫПАДАЕТ ПО НАВЕДЕНИЮ НА ПУНКТЫ НИЖНЕГО ВЕРХНЕГО МЕНЮ)
+   */
   #expand-top-menu2 {
   font-family: 'Proxima Nova', sans-serif;
   background-color:transparent;
@@ -206,7 +202,7 @@ flex-grow: 0;
   transition: opacity 3.5s ease-in-out;
 }
 #expand-top-menu2.to-show > div.container > div.row > div > p > a {
-  color: #222;
+  color: var(--text-dark);
   text-decoration: none;
   position: relative;
   overflow: hidden;
@@ -215,9 +211,30 @@ flex-grow: 0;
   border-left: transparent 5px solid;
 }
 #expand-top-menu2.to-show > div.container > div.row > div > p > a:hover {
-  color: whitesmoke; /* Цвет текста при наведении */
-  border-left: white 5px solid;
-  background-color: navy;
+  color: var(--text-light); /* Цвет текста при наведении */
+  border-left: var(--text-light) 5px solid;
+  background-color: var(--bg-b-dark);
   transition: color .3s ease-in-out, background-color .8s ease-in-out, border-left .8s ease-in-out;
+}
+/*
+ * МЕНЮ В ФУТЕРЕ
+ */
+#menu-footer { background: var(--bg-b-light) ; } /* Фон базовый */
+#menu-footer > div  { background: var(--bg-b-dark); } /* Фон с закругленными уголками */
+#menu-footer > div  > div > p, #menu-footer > div  > div > address, #menu-footer > div  > div > ul > li { /* Параграфы */
+  color: var(--text-light);
+  font-family: 'Proxima Nova', sans-serif;
+  font-weight: 400;
+}
+#menu-footer > div  > div > ul > li { line-height: 2em; } /* Пункты меню */
+#menu-footer > div  > div > p> a, #menu-footer > div  > div > address > a, #menu-footer > div  > div > ul > li > a { /* Ссылки (в том числе с картинок) */
+  color: var(--text-light);
+  text-decoration: none;
+}
+#menu-footer > div  > div > p > a[href^="mailto:"], #menu-footer > div  > div > ul > li > a { /* Ссылки на почту и в меню */
+  border-bottom: solid 1px var(--text-light);
+}
+#menu-footer > div  > div > address > a[href^="tel:"] { /* Ссылки на телефон */
+  border-bottom: dashed 1px var(--text-light);
 }
 

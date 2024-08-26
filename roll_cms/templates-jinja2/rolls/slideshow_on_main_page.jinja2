@@ -1,10 +1,7 @@
-{# RollCMS_var main_slides #}
-{# RollCMS_description Слайд шоу на главной странице #}
-{# RollCMS_RollItemIn 4 #}
-{# RollCMS_RollFilterRule kImg__isnull=False,bPublish=True #}
-{# RollCMS_RollSortRule ? #}
-<div class="container px-0">
-  <div id="index-slider" class="carousel slide carousel-fade" data-bs-ride="carousel">
+{# RollCMS_var main_slides #}{# RollCMS_description Слайд шоу на главной странице #}{# RollCMS_RollItemIn 4 #}{# RollCMS_RollFilterRule kImg__isnull=False,bPublish=True #}{# RollCMS_RollSortRule ? #}<!--
+  СЛАЙДЕР НА ГЛАВНОЙ -->
+  <div class="row">
+  <div id="index-slider" class="col-12 carousel slide carousel-fade" data-bs-ride="carousel">
     <div class="carousel-indicators">{% for item in main_slides.items %}
       <button type="button" data-bs-target="#index-slider" data-bs-slide-to="{{ loop.index0 }}"{% if loop.first %} class="active" aria-current="true"{% endif %} aria-label="{{ item.szTitle }}"></button>{% endfor %}
     </div>
@@ -26,4 +23,5 @@
       <span class="visually-hidden">Next</span>
     </button>
   </div>
-</div>
+  </div><!--
+  /СЛАЙДЕР НА ГЛАВНОЙ -->

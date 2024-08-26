@@ -1,7 +1,12 @@
 {# RollCMS_var footer_menu #}{# RollCMS_description Подвал-меню #}<nav id="menu-footer" class="container px-0">
   <div class="row m-0 px-0 pt-3 rounded-top-4">
     <div class="col-3 offset-1 h-100">
-      
+      <address>Москва, ул. Семеновский Вал, д. 4<br />
+        <a href="tel:+74996390000">+7 (499) 639-00-00</a><br />
+        <a href="tel:+78002505995">+7 (800) 250-59-95</a></address>
+      <p class="pb-4">
+        <a href="mailto:info@rsvo.ru">info@rsvo.ru</a>
+      </p>
     </div>
     <div class="col-4">
       <ul class="list-unstyled">{% for point in footer_menu.menu %}{% if point.bPointPublish %}
@@ -26,7 +31,7 @@
       </p>
     </div>
     <div class="col-7 text-end">
-      <p><small>© 2017—{% now 'Y' %}, Sergei Erjemin</small></p>
+      <p><small>© 2017—{% now 'Y' %}, ФГУП «Российские сети вещания и оповещения»</small></p>
     </div> 
   </div>
 </nav>
