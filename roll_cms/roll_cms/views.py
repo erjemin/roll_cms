@@ -439,7 +439,7 @@ def universal_processor(request: HttpRequest, url_chain: str) -> HttpResponse:
         # print(f"Элемент \"{q_item.szName}\" опубликован.")
         try:
             template_name = q_item.kTemplate.szFileName
-            var = q_item.kRollTemplate.szVar
+            var = q_item.kTemplate.szVar
         except AttributeError:
             if template_name is None or not template_name.strip():
                 # То что у элемента-контента нет индивидуального шаблона -- нормальная ситуация. Шаблоны
