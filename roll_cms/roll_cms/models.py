@@ -299,6 +299,7 @@ class TbItem(models.Model):
     # tdStop             | Дата снятия элемента                 | datetime(6)  | YES  | NULL    | index          |
     # iSort              | Сортировка элемента в ролле          | smallint     | YES  | 0       | index          |
     # iCount             | Счётчик просмотров элемента          | bigint(20)   | YES  | 0       | index          |
+    # szName             | Название (техническое)               | varchar(128) | YES  | ""      |                |
     # szTitle            | Заголовок элемента                   | varchar(768) | YES  | ""      |                |
     # kImg_id            | Картинка-превью элемента             | int(11)      | YES  | NULL    | foreign key    |
     # szNote             | Анонс элемента                       | text         | YES  | ""      |                |
@@ -308,6 +309,7 @@ class TbItem(models.Model):
     # szSlug             | URL-слаг элемента                    | varchar(155) | YES  | ""      | unique         |
     # jOldSlugs          | Старые URL-слаги элемента            | json         | YES  | NULL    |                |
     # szUrlTo            | URL на внешний ресурс                | varchar(200) | YES  | ""      |                |
+    # kRollTo_id         | Редирект на ролл                     | bigint(20)   | YES  | NULL    | foreign key    |
     # jAtt               | Аттрибуты и таги (вложения) элемента | json         | YES  | NULL    |                |
     # kTemplate_id       | Шаблон (спец-шаблон) элемента        | bigint(20)   | YES  | NULL    | foreign key    |
     # dtCreate           | Дата создания элемента               | datetime(6)  | NOT  | NOW()   | index          |
