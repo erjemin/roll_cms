@@ -1,0 +1,34 @@
+{# RollCMS_var test_r #}
+{# RollCMS_description -ТЕСТ-РОЛЛА-  (тест для ролла) #}
+{# RollCMS_ItemInRoll 0 #}
+    <h2>Весь контекст:</h2>
+    <dl>
+      {% for key, var in __all_rollcms_context__.items() %}
+        <dt class="font-monospace">{{ key }}</dt>
+        <dd class="ps-4 font-monospace">{{ var }}</dd>
+      {% endfor %}
+    </dl>
+    <h2>А что есть в этом ролле:</h2>
+    {{ test }}
+    <p>что-то (szRollSlug): {% if test_r.szRollSlug %}{{ test_r.szRollSlug }}{% else %}Нету{% endif %}</p>
+    <p>что-то (jRollOldSlugs): {% if test_r.jRollOldSlugs %}{{ test_r.jRollOldSlugs }}{% else %}Нету{% endif %}</p>
+    <p>что-то (szRollName): {% if test_r.szRollName %}{{ test_r.szRollName }}{% else %}Нету{% endif %}</p>
+    <p>что-то (bRollPublish): {% if test_r.bRollPublish %}{{ test_r.bRollPublish }}{% else %}Нету{% endif %}</p>
+    <p>что-то (kRollTemplate): {% if test_r.kRollTemplate %}{{ test_r.kRollTemplate }}{% else %}Нету{% endif %}</p>
+    <p>что-то (kDefaultContentTemplate): {% if test_r.kDefaultContentTemplate %}{{ test_r.kDefaultContentTemplate }}{% else %}Нету{% endif %}</p>
+    <p>что-то (iRollItemInPage): {{ test_r.iRollItemInPage }}</p>
+    <p>что-то (szRollFilterRule): {{ test_r.szRollFilterRule }}</p>
+    <p>что-то (szRollTitle): {% if test_r.szRollTitle %}{{ test_r.szRollTitle|safe }} / {{ test_r.szRollTitle }}{% else %}Нету{% endif %}</p>
+    <p>Картинка превью (test_r.kRollImgPreview.url): {% if test_r.kRollImgPreview %}{{ test_r.kRollImgPreview.url }}{% else %}Нету{% endif %}</p>
+    <p>что-то (szRollText): {% if test_r.szRollText %}{{ test_r.szRollText }}{% else %}Нету{% endif %}</p>
+    <p>что-то (szRollUrlTo): {% if test_r.szRollUrlTo %}{{ test_r.szRollUrlTo }}{% else %}Нету{% endif %}</p>
+    <p>что-то (kRollToParentRoll): {% if test_r.kRollToParentRoll %}{{ test_r.kRollToParentRoll }}{% else %}Нету{% endif %}</p>
+    <p>что-то (dtRollCreate): {% if test_r.dtRollCreate %}{{ test_r.dtRollCreate }}{% else %}Нету{% endif %}</p>
+    <p>что-то (dtRollTimeStamp): {% if test_r.dtRollTimeStamp %}{{ test_r.dtRollTimeStamp }}{% else %}Нету{% endif %}</p>
+    <h3>В ролл включен лист из элементов [var].items:</h3>
+    <dl>
+      {% for item in test_r.items %}
+        <dt>{{ item.szTitle|safe }}</dt>
+        <dd>{{ item.szSlug }}</dd>
+      {% endfor %}
+    </dl>
