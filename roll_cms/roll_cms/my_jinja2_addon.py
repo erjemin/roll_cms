@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.template.defaultfilters import date
 from django.conf import settings
 from datetime import datetime
-
+from easy_thumbnails.templatetags.thumbnail import thumbnail_url
 
 # ОКРУЖЕНИЕ jinja2:
 def environment(**options):
@@ -19,12 +19,12 @@ def environment(**options):
         "url": reverse
     })
 
-    # # Добавляем функцию easy-thumbnails как Jinja2-фильтр
-    # # Рецепт: https://stackoverflow.com/a/35641120/1504067
-    # from easy_thumbnails.templatetags.thumbnail import thumbnail_url
-    # env.filters.update(**{
-    #     'thumbnail_url': thumbnail_url,
-    # })
+    # Добавляем функцию easy-thumbnails как Jinja2-фильтр
+    # Рецепт: https://stackoverflow.com/a/35641120/1504067
+    env.filters.update({
+        'thumbnail_url': thumbnail_url,
+    })
+    # env.filters['thumbnail_url'] = thumbnail_url
 
     return env
 
