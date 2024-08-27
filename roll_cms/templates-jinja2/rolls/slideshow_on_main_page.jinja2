@@ -7,7 +7,7 @@
     </div>
     <div class="carousel-inner">{% for item in main_slides.items %}
       <div class="carousel-item{% if loop.first %} active{% endif %}">
-        <img src="{{ item.kImg.url }}" class="d-block w-100" alt="{{ item.szTitle }}" />
+        <img src="{{ item.kImg | thumbnail_url("big") }}" class="d-block w-100" alt="{{ item.szTitle }}" />
         <div class="carousel-caption d-none d-md-block">
           <h2>{{ item.szTitle|safe }}</h2>
           <p>{{ item.szNote|safe }}</p>
