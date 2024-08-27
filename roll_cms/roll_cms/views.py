@@ -476,8 +476,8 @@ def universal_processor(request: HttpRequest, url_chain: str) -> HttpResponse:
             # Но мы его уже получили. Т.к. пока функция get_context_for_item() не реализована, то
             # просто добавим элемент в контекст.
             processed_var_context.update({var: q_item})
-            print(f"processed_template_var = {processed_template_var}")
-            print(f"processed_var_context = {processed_var_context}")
+            # print(f"processed_template_var = {processed_template_var}")
+            # print(f"processed_var_context = {processed_var_context}")
 
     elif match.group(1) == URL_PREFIX_TAGG:
         #
