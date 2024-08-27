@@ -155,26 +155,26 @@ flex-grow: 0;
   transition: background-color 1.9s;
 }
 
- .menu2-tab-passive {
+.menu2-tab-passive {
   background-color: transparent;
   transition: background-color 0.9s ease-in-out;
     color: var(--text-light);
 }
-  .menu2-tab-active {
+.menu2-tab-active {
     background-color: #C3E6FFFF;
     transition: background-color 0ms;
   }
-  .menu2-tab-active a {
+.menu2-tab-active a {
     color: #316094 !important;
     border-bottom: 1px solid transparent !important;
   }
-  .menu2-tab-active a:hover {
+.menu2-tab-active a:hover {
     border-bottom: 1px solid #316094 !important;
   }
   /*
    * ВЫПАДАЮЩЕЕ МЕНЮ 2 (ТО ЧТО ВЫПАДАЕТ ПО НАВЕДЕНИЮ НА ПУНКТЫ НИЖНЕГО ВЕРХНЕГО МЕНЮ)
    */
-  #expand-top-menu2 {
+#expand-top-menu2 {
   font-family: 'Proxima Nova', sans-serif;
   background-color:transparent;
   font-style: normal;
