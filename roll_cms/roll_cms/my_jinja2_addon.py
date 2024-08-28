@@ -45,9 +45,9 @@ def environment(**options) -> Environment:
     # Добавляем функцию easy-thumbnails как Jinja2-фильтр
     # Рецепт: https://stackoverflow.com/a/35641120/1504067
     env.filters.update({
-        'thumbnail_url': safe_thumbnail_url,
+        'tmb_url': safe_thumbnail_url,
     })
-    # env.filters['thumbnail_url'] = safe_thumbnail_url
+    # env.filters['tmb_url'] = safe_thumbnail_url
 
     return env
 
