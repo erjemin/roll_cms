@@ -8,9 +8,32 @@ from django.template.defaultfilters import date
 from django.conf import settings
 from datetime import datetime
 from easy_thumbnails.templatetags.thumbnail import thumbnail_url
+from easy_thumbnails.files import get_thumbnailer
+
+def safe_thumbnail_url(url: str = "", alias: str = "") -> str:
+    """ Возвращает "защищенный" URL-адрес миниатюры изображения, созданной с помощью easy-thumbnails.
+        Если URL-адрес изображения отсутствует или алиас не найден, возвращает пустую строку.
+
+    :param url: URL-адрес исходной картинки
+    :param alias: Алиас миниатюры
+    :return: URL-адрес миниатюры изображения
+    """
+    if not url:
+        return str()  # Возвращаем пустую строку, если URL картинки отсутствует
+    try:
+        thumbnailer = get_thumbnailer(url)
+        return thumbnailer[alias].url
+    except KeyError:
+        return str()  # Возвращаем пустую строку, если алиас не найден
+
 
 # ОКРУЖЕНИЕ jinja2:
-def environment(**options):
+def environment(**options) -> Environment:
+    """  Создает и возвращает объект окружения Jinja2 с настройками по умолчанию.
+
+    :param options: Настройки для окружения Jinja2 (с распаковкой словаря)
+    :return: Объект окружения Jinja2
+    """
     env = Environment(**options)
     # добавляет тег static в jinja2 для обслуживания статики django
     # https://samuh.medium.com/using-jinja2-with-django-1-8-onwards-9c58fe1204dc
@@ -22,14 +45,14 @@ def environment(**options):
     # Добавляем функцию easy-thumbnails как Jinja2-фильтр
     # Рецепт: https://stackoverflow.com/a/35641120/1504067
     env.filters.update({
-        'thumbnail_url': thumbnail_url,
+        'thumbnail_url': safe_thumbnail_url,
     })
-    # env.filters['thumbnail_url'] = thumbnail_url
+    # env.filters['thumbnail_url'] = safe_thumbnail_url
 
     return env
 
 
-# КЛАСС добавляет тег now в jinja2 (как было в шаблонизаторе django)
+# КЛАСС добавляет тег now в jinja2 (почти как в шаблонизаторе django)
 # https://stackoverflow.com/a/51641667/1504067
 class DjangoNow(Extension):
     tags = set(['now'])
