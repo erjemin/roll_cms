@@ -69,6 +69,21 @@ def safe_html_special_symbols(s: str) -> str:
     return result
 
 
+def clean_html_and_entities(text: str) -> str:
+    """ Очистка текста от HTML-тегов и мнемокодов
+
+    :param text: str: текст, который надо очистить
+    :return: str:     очищенный текст
+    """
+    if text is None or text.strip() == "":
+        return ''
+    # Удаление HTML-тегов
+    clean_text = re.sub(pattern=r"<.*?>", repl="", string=text)
+    # Декодирование мнемокодов
+    clean_text = html.unescape(clean_text)
+    return clean_text
+
+
 def hyphenation_in_word(s: str, sep: str = "") -> str:
     """ Расстановка переносов в слове
     рецепт: https://ru.stackoverflow.com/questions/900660/Расстановка-переносов-в-русских-словах

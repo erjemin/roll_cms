@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import re
+
 from django.contrib import admin
 from django import forms
 from django.core.cache import cache
@@ -9,9 +11,10 @@ from django.db import transaction
 # from codemirror import CodeMirrorTextarea
 from roll_cms.models import TbTemplate, TbRoll, TbItem, TbMenu, TbMenuPoint
 from roll_cms.settings import *
-from roll_cms.add_function import hyphenation_in_text, process_slug_fields, process_typograf_fields
+from roll_cms.add_function import clean_html_and_entities, process_slug_fields, process_typograf_fields
+import pytils
 import html
-import roll_cms.EMT as EMT
+# import roll_cms.EMT as EMT
 
 # Стилевые настройки для codemirror (единые для всех разделов админки)
 cm_css = {'all': (
@@ -166,8 +169,8 @@ class RollAdminForm(TypografAdminForm):
     def clean(self):
         # Переопределим валидацию формы TbRoll-адмики и, заодно, переопределим значения некоторых полей.
         # ========== Обработка полей управляющих URL-слагами ==========
-        process_slug_fields(self, field_4_sz_slug='szRollSlug', field_4_js_old_slugs='jRollOldSlugs',
-                            field_4_slug_make_from='szRollName', model=TbRoll)
+        # process_slug_fields(self, field_4_sz_slug='szRollSlug', field_4_js_old_slugs='jRollOldSlugs',
+        #                     field_4_slug_make_from='szRollName', model=TbRoll)
         # ========== Обработка полей управляющих типографом и переносами ==========
         # Получаем данные из формы (поля формы)
         form_data: dict = super().clean()
@@ -196,6 +199,25 @@ class RollAdminForm(TypografAdminForm):
 # -- Админка роллов
 @admin.register(TbRoll)
 class AdminRoll(CacheClearMixin, admin.ModelAdmin):
+    def save_model(self, request, obj, form, change):
+        # print(obj.szRollName, form.instance.pk)
+        # Переопределяем методы save_model и save_related
+        if form.instance.pk is None:
+            # У ролла нет PK, значит он только что создан. Сначала запишем его, чтобы получить ID (получится два
+            # запроса на запись, но иначе никак не узнать ID для записи которой еще не существует)
+            super().save_model(request, obj, form, change)
+        if obj.szRollSlug is None or obj.szRollSlug.strip() == "" or not re.match(pattern=rf'^{URL_PREFIX_ROLL}{obj.id}-\S+$', string=obj.szRollSlug):
+            # Если слаг не соответствует шаблону, то создадим его
+            title = clean_html_and_entities(obj.szRollTitle).lower()
+            if title is None or not title.strip():
+                # Если заголовок пустой, то добавим в слаг слово 'empty'
+                title = 'empty'
+            created_slug = (f"{URL_PREFIX_ROLL}{obj.id}-"
+                            f"{pytils.translit.slugify(title)}")[:SLUG_LENGTH]
+            print(f"Созданный слаг: {created_slug}")
+            obj.szRollSlug = created_slug
+        super().save_model(request, obj, form, change)
+
     class Media:
         # настройка подключения codemirror
         css = cm_css  # подключаемые CSS
@@ -222,7 +244,7 @@ class AdminRoll(CacheClearMixin, admin.ModelAdmin):
             'fields': ('bRollPublish', 'szRollName', ),
         }),
         ('SLUG & REDIRECT', {
-            'fields': (('szRollSlug', 'szRollUrlTo', ), 'jRollOldSlugs', ),
+            'fields': (('szRollSlug', 'szRollUrlTo', ), ),
             'classes': ('collapse',),
         }),
         ('ШАБЛОНЫ И РОДИТЕЛЬСКИЙ РОЛЛ', {
