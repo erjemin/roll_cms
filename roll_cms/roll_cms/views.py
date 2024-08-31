@@ -99,7 +99,7 @@ def get_context_for_menu(q_menu: QuerySet = None, menu_id: int = None, processed
                 url_to = point.szPointUtlTo
             elif point.kPoint2Roll_id is not None:
                 # Этот пункт меню ведет на ролл
-                url_to = f"/{URL_PREFIX_ROLL}{point.kPoint2Roll_id}-{point.kPoint2Roll.szRollSlug}"
+                url_to = f"/{point.kPoint2Roll.szRollSlug}"
             elif point.kPoint2Item_id is not None:
                 # Этот пункт меню ведет на элемент
                 url_to = f"/{URL_PREFIX_ITEM}{point.kPoint2Item_id}-{point.kPoint2Item.szSlug}"
@@ -414,7 +414,7 @@ def universal_processor(request: HttpRequest, url_chain: str) -> HttpResponse:
             # print(f"Для ролла \"{roll_id}\" контекст не нужен.")
             pass
         else:
-            breadcrumbs[-1] = f"{URL_PREFIX_ROLL}{roll_id}-{q_roll.szRollSlug}"
+            breadcrumbs[-1] = f"{q_roll.szRollSlug}"
             context = get_context_for_roll(q_roll=q_roll)
             processed_var_context.update({var: context})
 
