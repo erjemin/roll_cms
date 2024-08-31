@@ -282,8 +282,8 @@ class ItemAdminForm(TypografAdminForm):
     def clean(self):
         # Переопределим валидацию формы TbItem-адмики и, заодно, переопределим значения некоторых полей.
         # ========== Обработка полей управляющих URL-слагами ==========
-        process_slug_fields(self, field_4_sz_slug='szSlug', field_4_js_old_slugs='jOldSlugs',
-                            field_4_slug_make_from='szTitle', model=TbItem)
+        # process_slug_fields(self, field_4_sz_slug='szSlug', field_4_js_old_slugs='jOldSlugs',
+        #                     field_4_slug_make_from='szTitle', model=TbItem)
         # ========== Обработка полей управляющих типографом и переносами ==========
         # Получаем данные из формы (поля формы)
         form_data: dict = super().clean()
@@ -314,7 +314,7 @@ class ItemAdminForm(TypografAdminForm):
 
 
 @admin.register(TbItem)
-class AdminItem(CacheClearMixin, admin.ModelAdmin):
+class AdminItem(SlugMixin, CacheClearMixin, admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
         css = cm_css  # подключаемые CSS
@@ -361,7 +361,7 @@ class AdminItem(CacheClearMixin, admin.ModelAdmin):
             'classes': ('collapse',),
         }),
         ('SLUG, URL И ВЛОЖЕННЫЙ РОЛЛ', {
-            'fields': (('szSlug', 'jOldSlugs',), ('szUrlTo',), ('kRollTo',),),
+            'fields': (('szSlug', ), ('szUrlTo',), ('kRollTo',),),
             'classes': ('collapse',),
         }),
         ('SEO', {
