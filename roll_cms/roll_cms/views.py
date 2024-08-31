@@ -102,7 +102,7 @@ def get_context_for_menu(q_menu: QuerySet = None, menu_id: int = None, processed
                 url_to = f"/{point.kPoint2Roll.szRollSlug}"
             elif point.kPoint2Item_id is not None:
                 # Этот пункт меню ведет на элемент
-                url_to = f"/{URL_PREFIX_ITEM}{point.kPoint2Item_id}-{point.kPoint2Item.szSlug}"
+                url_to = f"/{point.kPoint2Item.szSlug}"
             elif point.kPoint2Menu_id is not None:
                 # Этот пункт меню требует включить другое меню
                 # И да! Это вызывает рекурсию и кучу дополнительных запросов к базе! Все это медленно!
