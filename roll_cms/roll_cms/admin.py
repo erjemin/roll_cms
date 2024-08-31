@@ -212,7 +212,6 @@ class RollAdminForm(TypografAdminForm):
         model = TbRoll
         fields = "__all__"
         widgets = {
-            'jRollOldSlugs': forms.Textarea(attrs={'class': 'json_editor1'}),
             'szRollTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
             'szRollText': forms.Textarea(attrs={'class': 'code_editor_text'}),
             'szRollUrlTo': forms.Textarea(attrs={'class': 'url_str'}),
@@ -304,7 +303,6 @@ class ItemAdminForm(TypografAdminForm):
         model = TbItem
         fields = "__all__"
         widgets = {
-            'jOldSlugs': forms.Textarea(attrs={'class': 'json_editor1'}),
             'jAtt': forms.Textarea(attrs={'class': 'json_editor2'}),
             'szTitle': forms.Textarea(attrs={'class': 'code_editor_title'}),
             'szNote': forms.Textarea(attrs={'class': 'code_editor_note'}),
