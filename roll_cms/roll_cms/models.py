@@ -294,7 +294,6 @@ class TbItem(models.Model):
     # szSeoKeywords      | Keywords (SEO)                       | varchar(120) | YES  | ""      |                |
     # szSeoDescription   | Description (SEO)                    | varchar(160) | YES  | ""      |                |
     # szSlug             | URL-слаг элемента                    | varchar(155) | YES  | ""      | unique         |
-    # jOldSlugs          | Старые URL-слаги элемента            | json         | YES  | NULL    |                |
     # szUrlTo            | URL на внешний ресурс                | varchar(200) | YES  | ""      |                |
     # kRollTo_id         | Редирект на ролл                     | bigint(20)   | YES  | NULL    | foreign key    |
     # jAtt               | Аттрибуты и таги (вложения) элемента | json         | YES  | NULL    |                |
@@ -383,24 +382,12 @@ class TbItem(models.Model):
                   " на базе заголовка анонса</b></small>"
     )
     szSlug = models.SlugField(
-        default="", max_length=SLUG_LENGTH, blank=True, null=True, db_index=True, unique=True,
+        default="", max_length=SLUG_LENGTH, blank=True, null=True, db_index=True,
         verbose_name="URL-слаг",
-        help_text=f"URL-слаг страницы… {SLUG_LENGTH} символов (пробелы заменяются \"-\").<br/>"
+        help_text=f"URL-слаг ролла… {SLUG_LENGTH} символа (пробелы заменяются \"-\").<br/>"
+                  f"Вначале слага у ролла должен быть \"{URL_PREFIX_ITEM}ID-\", где \"ID\" — целое число,"
+                  f"соответсвующее id элемента контента.<br/>"
                   f"<small><b>Если оставить пустым, то URL-слаг сформируется автоматически</b></small>"
-    )
-    jOldSlugs = models.JSONField(
-        default=list, blank=True, null=True,
-        verbose_name="Старые URL-слаги",
-        help_text="JSON-список строк (типа <b>[\"старый_слаг_1\", \"старый_слаг_2\", \"и так далее\", ]</b>) из"
-                  " предыдущих URL-слагов, которые использовались для этого элемента. Возможно нужно для корректной"
-                  " переиндексации страниц поисковиками при изменении слага на давно работающем публичном сайте.<br/>"
-                  "<small>Используется для редиректа с предыдущих URL-слагов на текущий. Попытка найти возможный"
-                  " редирект будет производиться только при обработке ошибки 404 (страница не найдена) и поэтому"
-                  " может быть <b>перекрыт</b> существующим слагом другого ролла. Кроме того, следует учесть, что "
-                  " редиркеты по старым слагам, в силу отсутствия сквозных индексов, будет очень медленным и порождать"
-                  " лишнюю нагрузку... Редирект будет производится с кодом 301 (постоянный редирект)</small><br />"
-                  "<b style=\"color:red\">Список создается автоматически, но доступен для редактирования"
-                  " (например, для удаления слагов, редиректы для которых больше не требуется)</b>"
     )
     szUrlTo = models.CharField(
         default="", blank=True, null=True, max_length=200,
