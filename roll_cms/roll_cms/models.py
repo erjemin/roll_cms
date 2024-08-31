@@ -126,8 +126,7 @@ class TbRoll(models.Model):
     # Поле               | Назначение                           | Тип          | NULL | DEFAULT | Extra          |
     # -------------------+--------------------------------------+--------------+------+---------+----------------+
     # id                 | primary key (pk)                     | bigint(20)   | NOT  |         | auto_increment |
-    # szRollSlug         | URL-слаг                             | varchar(155) | YES  | ""      | unique         |
-    # jRollOldSlugs      | Старые URL-слаги                     | json         | YES  | NULL    |                |
+    # szRollSlug         | URL-слаг                             | varchar(155) | YES  | ""      | index         |
     # szRollName         | Имя ролла (техническое)              | varchar(64)  | NOT  |         | unique         |
     # bRollPublished     | Вкл./Выкл. ролл (опубликован)        | tinyint(1)   | NOT  | 1       | index          |
     # kRollTemplate_id   | Шаблон ролла                         | bigint(20)   | YES  | NULL    | foreign key(?) |
@@ -143,24 +142,12 @@ class TbRoll(models.Model):
     # dtRollTimeStamp    | Штамп времени (дата изменения ролла) | datetime(6)  | NOT  | NOW()   | index          |
     # -------------------+--------------------------------------+--------------+------+---------+----------------+
     szRollSlug = models.SlugField(
-        default="", max_length=SLUG_LENGTH, blank=True, null=True, db_index=True, unique=True,
+        default="", max_length=SLUG_LENGTH, blank=True, null=True, db_index=True,
         verbose_name="URL-слаг",
-        help_text=f"URL-слаг страницы… {SLUG_LENGTH} символа (пробелы заменяются \"-\").<br/>"
+        help_text=f"URL-слаг ролла… {SLUG_LENGTH} символа (пробелы заменяются \"-\").<br/>"
+                  f"Вначале слага у ролла должен быть \"{URL_PREFIX_ROLL}ID-\", где \"ID\" — целое число,"
+                  f"соответсвующее id ролла.<br/>"
                   f"<small><b>Если оставить пустым, то URL-слаг сформируется автоматически</b></small>"
-    )
-    jRollOldSlugs = models.JSONField(
-        default=list, blank=True, null=True,
-        verbose_name="Старые URL-слаги",
-        help_text="JSON-список строк (типа <b>[\"старый_слаг_1\", \"старый_слаг_2\", \"и так далее\", ]</b>) из"
-                  " предыдущих URL-слагов, которые использовались для этого ролла ранее. Возможно нужно для корректной"
-                  " переиндексации страниц поисковиками при изменении слага на давно работающем публичном сайте.<br/>"
-                  "<small>Используется для редиректа с предыдущих URL-слагов на текущий. Попытка найти возможный"
-                  " редирект будет производиться только при обработке ошибки 404 (страница не найдена) и поэтому"
-                  " может быть <b>перекрыт</b> существующим слагом другого ролла. Кроме того, следует учесть, что "
-                  " редиркеты по старым слагам, в силу отсутствия сквозных индексов, будет очень медленным и порождать"
-                  " лишнюю нагрузку... Редирект будет производится с кодом 301 (постоянный редирект)</small><br />"
-                  "<b style=\"color:red\">Список создается автоматически, но доступен для редактирования"
-                  " (например, для удаления слагов, редиректы для которых больше не требуется)</b>"
     )
     szRollName = models.CharField(
         max_length=64, blank=False, null=False,
