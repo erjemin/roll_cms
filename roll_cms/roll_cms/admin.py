@@ -168,9 +168,6 @@ class RollAdminForm(TypografAdminForm):
 
     def clean(self):
         # Переопределим валидацию формы TbRoll-адмики и, заодно, переопределим значения некоторых полей.
-        # ========== Обработка полей управляющих URL-слагами ==========
-        # process_slug_fields(self, field_4_sz_slug='szRollSlug', field_4_js_old_slugs='jRollOldSlugs',
-        #                     field_4_slug_make_from='szRollName', model=TbRoll)
         # ========== Обработка полей управляющих типографом и переносами ==========
         # Получаем данные из формы (поля формы)
         form_data: dict = super().clean()
