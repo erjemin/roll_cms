@@ -64,6 +64,32 @@ class CacheClearMixin:
             if change:
                 cache.clear()
 
+# Миксин для обработки слагов
+class SlugMixin:
+    def save_model(self, request, obj, form, change):
+        # Определяем поля, участвующие в формировании слага, и сам слаг
+        slug_field = 'szRollSlug' if hasattr(obj, 'szRollSlug') else 'szSlug'
+        title_field = 'szRollTitle' if hasattr(obj, 'szRollTitle') else 'szTitle'
+        url_prefix = URL_PREFIX_ROLL if hasattr(obj, 'szRollSlug') else URL_PREFIX_ITEM
+        # Проверяем, существует ли объект в базе данных
+        if form.instance.pk is None:
+            # У объекта нет PK, значит он только что создан. Сначала запишем его, чтобы получить ID (получится два
+            # запроса на запись, но иначе никак не узнать ID для записи которой еще не существует)
+            super().save_model(request, obj, form, change)
+        # Проверяем, соответствует ли слаг шаблону
+        if getattr(obj, slug_field) is None or not getattr(obj, slug_field).strip() or not re.match(
+                pattern=rf'^{url_prefix}{obj.id}-\S+$', string=getattr(obj, slug_field)):
+            # Если слаг не соответствует шаблону, то создадим его
+            title = clean_html_and_entities(getattr(obj, title_field)).lower()
+            if title is None or not title.strip():
+                # Если заголовок пустой, то добавим в слаг слово 'empty'
+                title = 'empty'
+            created_slug = (f"{url_prefix}{obj.id}-"
+                            f"{pytils.translit.slugify(title)}")[:SLUG_LENGTH]
+            # print(f"Созданный слаг: {created_slug}")
+            setattr(obj, slug_field, created_slug)
+        super().save_model(request, obj, form, change)
+
 
 # ОПИСАНИЯ КЛАССОВ АДМИНКИ
 # -- ШАБЛОНЫ {Т}
@@ -195,26 +221,7 @@ class RollAdminForm(TypografAdminForm):
 
 # -- Админка роллов
 @admin.register(TbRoll)
-class AdminRoll(CacheClearMixin, admin.ModelAdmin):
-    def save_model(self, request, obj, form, change):
-        # print(obj.szRollName, form.instance.pk)
-        # Переопределяем методы save_model и save_related
-        if form.instance.pk is None:
-            # У ролла нет PK, значит он только что создан. Сначала запишем его, чтобы получить ID (получится два
-            # запроса на запись, но иначе никак не узнать ID для записи которой еще не существует)
-            super().save_model(request, obj, form, change)
-        if obj.szRollSlug is None or obj.szRollSlug.strip() == "" or not re.match(pattern=rf'^{URL_PREFIX_ROLL}{obj.id}-\S+$', string=obj.szRollSlug):
-            # Если слаг не соответствует шаблону, то создадим его
-            title = clean_html_and_entities(obj.szRollTitle).lower()
-            if title is None or not title.strip():
-                # Если заголовок пустой, то добавим в слаг слово 'empty'
-                title = 'empty'
-            created_slug = (f"{URL_PREFIX_ROLL}{obj.id}-"
-                            f"{pytils.translit.slugify(title)}")[:SLUG_LENGTH]
-            print(f"Созданный слаг: {created_slug}")
-            obj.szRollSlug = created_slug
-        super().save_model(request, obj, form, change)
-
+class AdminRoll(SlugMixin, CacheClearMixin, admin.ModelAdmin):
     class Media:
         # настройка подключения codemirror
         css = cm_css  # подключаемые CSS
