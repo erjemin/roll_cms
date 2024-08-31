@@ -141,42 +141,6 @@ def hyphenation_in_text(text: str, min_len_word_hyphenation: int = 14, sep: str 
     return text
 
 
-def process_slug_fields(form: forms.ModelForm, field_4_sz_slug: str, field_4_js_old_slugs: str,
-                        field_4_slug_make_from: str, model: models):
-    """
-    Функция обработки полей управляющих URL-слагами (для всех моделей cо слагами)
-    :param form:                    -- форма модели
-    :param field_4_sz_slug:         -- имя поля URL-слага
-    :param field_4_js_old_slugs:    -- имя поля для хранения старых URL-слагов
-    :param field_4_slug_make_from:  -- имя поля, из которого будем делать URL-слаг
-    :param model:                   -- модель
-    :return: None                   -- ничего не возвращает, т.к. изменяет данные непосредственно в form, а словари,
-                                       а form.cleaned_data -- словарь, передаются по ссылке, а не по значению
-    """
-    # Получаем данные из формы (поля формы)
-    form_data: dict = form.cleaned_data
-    if form.instance.pk is None or form_data[field_4_js_old_slugs] is None:
-        # если это новая запись или старых URL-слагов нет -- создадим список
-        form_data[field_4_js_old_slugs] = []
-    if form_data[field_4_sz_slug] is None or re.sub(r"\s+", "", form_data[field_4_sz_slug]) == "":
-        # если в форме не указали URL-слаг, то создадим его из переменной make_slug_from
-        created_slug = pytils.translit.slugify(form_data[field_4_slug_make_from]).lower()
-        # создаём словарь для фильтрации проверки уникальности URL-слага
-        filter_dict = {field_4_sz_slug: created_slug[:SLUG_LENGTH]}
-        # проверим уникальность созданного URL-слага
-        while model.objects.filter(**filter_dict).count() != 0:
-            f"{created_slug[:SLUG_LENGTH-3]}-{int(random.uniform(0, 255)):x}"
-        form_data[field_4_sz_slug] = created_slug
-    if form.instance.pk is not None and form_data[field_4_sz_slug] != getattr(model.objects.get(id=form.instance.pk),
-                                                                              field_4_sz_slug):
-        # если это редактирование существующей записи и URL-слаг изменился, то добавим его в старые URL-слаги
-        if getattr(model.objects.get(id=form.instance.pk), field_4_sz_slug) not in form_data[field_4_js_old_slugs]:
-            form_data[field_4_js_old_slugs].append(getattr(model.objects.get(id=form.instance.pk), field_4_sz_slug))
-        # если новый URL-слаг уже есть в старых URL-слагах, то удалим его из старых URL-слагов
-        if form_data[field_4_sz_slug] in form_data[field_4_js_old_slugs]:
-            form_data[field_4_js_old_slugs].remove(form_data[field_4_sz_slug])
-
-
 def process_typograf_fields(form: forms.ModelForm, fields_4_typograf: list):
     """
     Функция обработки полей типографа (для всех моделей c типографом)

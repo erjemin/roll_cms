@@ -11,7 +11,7 @@ from django.db import transaction
 # from codemirror import CodeMirrorTextarea
 from roll_cms.models import TbTemplate, TbRoll, TbItem, TbMenu, TbMenuPoint
 from roll_cms.settings import *
-from roll_cms.add_function import clean_html_and_entities, process_slug_fields, process_typograf_fields
+from roll_cms.add_function import clean_html_and_entities, process_typograf_fields
 import pytils
 import html
 # import roll_cms.EMT as EMT
